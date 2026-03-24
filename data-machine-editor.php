@@ -51,7 +51,6 @@ add_action( 'plugins_loaded', function () {
 
 	// Register abilities.
 	new DataMachineEditor\Abilities\DiffAbilities();
-	new DataMachineEditor\Abilities\InsertContentAbility();
 
 	// Register editor context memory file.
 	add_filter( 'datamachine_default_context_files', 'datamachine_editor_register_context' );
