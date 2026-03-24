@@ -1,0 +1,93 @@
+/**
+ * Editor Chat Sidebar Styles
+ *
+ * Overrides and layout for the chat sidebar inside the Gutenberg editor.
+ * Base chat styles come from @extrachill/chat/css.
+ */
+
+.datamachine-editor-sidebar {
+	display: flex;
+	flex-direction: column;
+	height: 100%;
+	overflow: hidden;
+}
+
+.datamachine-editor-sidebar__header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 12px 16px;
+	border-bottom: 1px solid #e0e0e0;
+	background: #f9f9f9;
+	flex-shrink: 0;
+}
+
+.datamachine-editor-sidebar__title {
+	font-size: 13px;
+	font-weight: 600;
+	color: #1e1e1e;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	max-width: 200px;
+}
+
+.datamachine-editor-sidebar__sessions-btn {
+	font-size: 12px;
+	color: #2563eb;
+	background: none;
+	border: none;
+	cursor: pointer;
+	padding: 2px 6px;
+	border-radius: 3px;
+}
+
+.datamachine-editor-sidebar__sessions-btn:hover {
+	background: #eef2ff;
+}
+
+.datamachine-editor-sidebar__messages {
+	flex: 1;
+	overflow-y: auto;
+	min-height: 0;
+}
+
+.datamachine-editor-sidebar__input {
+	flex-shrink: 0;
+	border-top: 1px solid #e0e0e0;
+}
+
+.datamachine-editor-sidebar__empty {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	height: 100%;
+	padding: 32px 16px;
+	text-align: center;
+	color: #757575;
+	font-size: 13px;
+	line-height: 1.6;
+}
+
+.datamachine-editor-sidebar__sessions {
+	height: 100%;
+	overflow-y: auto;
+}
+
+/* Fit chat components inside the narrow sidebar */
+.datamachine-editor-sidebar .ec-chat-messages {
+	padding: 8px;
+}
+
+.datamachine-editor-sidebar .ec-chat-message-bubble {
+	max-width: 100%;
+	font-size: 13px;
+}
+
+.datamachine-editor-sidebar .ec-chat-input {
+	padding: 8px;
+}
+
+.datamachine-editor-sidebar .ec-chat-input textarea {
+	font-size: 13px;
+}

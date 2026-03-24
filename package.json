@@ -22,6 +22,7 @@
 		"typescript": "^5.4.0"
 	},
 	"dependencies": {
+		"@extrachill/chat": "github:Extra-Chill/chat",
 		"@wordpress/api-fetch": "^7.0.0",
 		"@wordpress/interface": "^9.11.0"
 	}

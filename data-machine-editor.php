@@ -116,26 +116,45 @@ function datamachine_editor_register_blocks(): void {
  * Enqueue editor scripts and styles.
  */
 function datamachine_editor_enqueue_assets(): void {
-	$asset_file = DATAMACHINE_EDITOR_PATH . 'build/diff-block.asset.php';
+	// Diff block assets.
+	$diff_asset_file = DATAMACHINE_EDITOR_PATH . 'build/diff-block.asset.php';
+	if ( file_exists( $diff_asset_file ) ) {
+		$asset = require $diff_asset_file;
 
-	if ( ! file_exists( $asset_file ) ) {
-		return;
+		wp_enqueue_script(
+			'datamachine-diff-block',
+			DATAMACHINE_EDITOR_URL . 'build/diff-block.js',
+			$asset['dependencies'],
+			$asset['version'],
+			true
+		);
+
+		wp_enqueue_style(
+			'datamachine-diff-block',
+			DATAMACHINE_EDITOR_URL . 'build/style-diff-block.css',
+			array(),
+			$asset['version']
+		);
 	}
 
-	$asset = require $asset_file;
+	// Editor chat sidebar assets.
+	$sidebar_asset_file = DATAMACHINE_EDITOR_PATH . 'build/editor-sidebar.asset.php';
+	if ( file_exists( $sidebar_asset_file ) ) {
+		$sidebar_asset = require $sidebar_asset_file;
 
-	wp_enqueue_script(
-		'datamachine-diff-block',
-		DATAMACHINE_EDITOR_URL . 'build/diff-block.js',
-		$asset['dependencies'],
-		$asset['version'],
-		true
-	);
+		wp_enqueue_script(
+			'datamachine-editor-sidebar',
+			DATAMACHINE_EDITOR_URL . 'build/editor-sidebar.js',
+			$sidebar_asset['dependencies'],
+			$sidebar_asset['version'],
+			true
+		);
 
-	wp_enqueue_style(
-		'datamachine-diff-block',
-		DATAMACHINE_EDITOR_URL . 'build/style-diff-block.css',
-		array(),
-		$asset['version']
-	);
+		wp_enqueue_style(
+			'datamachine-editor-sidebar',
+			DATAMACHINE_EDITOR_URL . 'build/style-editor-sidebar.css',
+			array(),
+			$sidebar_asset['version']
+		);
+	}
 }
