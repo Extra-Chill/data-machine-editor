@@ -1,0 +1,19 @@
+{
+  "auto_cleanup": false,
+  "changelog_target": "docs/CHANGELOG.md",
+  "extensions": {
+    "wordpress": {}
+  },
+  "id": "data-machine-editor",
+  "remote_path": "wp-content/plugins/data-machine-editor",
+  "version_targets": [
+    {
+      "file": "data-machine-editor.php",
+      "pattern": "Version:\\s*([0-9.]+)"
+    },
+    {
+      "file": "data-machine-editor.php",
+      "pattern": "DATAMACHINE_EDITOR_VERSION.+?([0-9.]+)"
+    }
+  ]
+}

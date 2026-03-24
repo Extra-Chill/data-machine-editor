@@ -1,0 +1,161 @@
+/**
+ * Data Machine Diff Block Styles
+ */
+
+.datamachine-diff-block {
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    padding: 16px;
+    margin: 16px 0;
+    background: #f9f9f9;
+    position: relative;
+}
+
+.datamachine-diff-block.datamachine-diff-pending {
+    border-color: #ffa500;
+    background: #fff8e1;
+}
+
+.datamachine-diff-block.datamachine-diff-accepted {
+    border-color: #4caf50;
+    background: #e8f5e8;
+}
+
+.datamachine-diff-block.datamachine-diff-rejected {
+    border-color: #f44336;
+    background: #ffebee;
+}
+
+.datamachine-diff-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #ddd;
+}
+
+.datamachine-diff-type {
+    font-weight: bold;
+    font-size: 12px;
+    text-transform: uppercase;
+    color: #666;
+    background: #e0e0e0;
+    padding: 4px 8px;
+    border-radius: 4px;
+}
+
+.datamachine-diff-id {
+    font-size: 12px;
+    color: #999;
+    font-family: monospace;
+}
+
+.datamachine-diff-preview {
+    margin-bottom: 16px;
+}
+
+.datamachine-diff-original,
+.datamachine-diff-replacement,
+.datamachine-diff-insertion,
+.datamachine-diff-deletion {
+    margin-bottom: 8px;
+    padding: 8px;
+    border-radius: 4px;
+}
+
+.datamachine-diff-original {
+    background: #ffebee;
+    border-left: 4px solid #f44336;
+}
+
+.datamachine-diff-replacement,
+.datamachine-diff-insertion {
+    background: #e8f5e8;
+    border-left: 4px solid #4caf50;
+}
+
+.datamachine-diff-deletion {
+    background: #ffebee;
+    border-left: 4px solid #f44336;
+}
+
+.datamachine-diff-label {
+    font-weight: bold;
+    font-size: 12px;
+    text-transform: uppercase;
+    color: #666;
+    margin-right: 8px;
+}
+
+.datamachine-diff-content {
+    font-family: inherit;
+    line-height: 1.5;
+}
+
+.datamachine-diff-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.datamachine-accept-btn {
+    background: #4caf50 !important;
+    border-color: #4caf50 !important;
+    color: white !important;
+}
+
+.datamachine-accept-btn:hover {
+    background: #45a049 !important;
+    border-color: #45a049 !important;
+}
+
+.datamachine-reject-btn {
+    background: #f44336 !important;
+    border-color: #f44336 !important;
+    color: white !important;
+}
+
+.datamachine-reject-btn:hover {
+    background: #da190b !important;
+    border-color: #da190b !important;
+}
+
+.datamachine-diff-status {
+    margin-top: 12px;
+    font-weight: bold;
+    text-align: center;
+    padding: 8px;
+    border-radius: 4px;
+    background: #e0e0e0;
+    color: #666;
+}
+
+.datamachine-diff-block.datamachine-diff-accepted .datamachine-diff-status {
+    background: #c8e6c9;
+    color: #2e7d32;
+}
+
+.datamachine-diff-block.datamachine-diff-rejected .datamachine-diff-status {
+    background: #ffcdd2;
+    color: #c62828;
+}
+
+/* Inline diff tags styling */
+.datamachine-diff-content ins.datamachine-diff-added {
+    background: #c8e6c9;
+    color: #2e7d32;
+    text-decoration: none;
+    padding: 2px 4px;
+    border-radius: 3px;
+    font-weight: 500;
+}
+
+.datamachine-diff-content del.datamachine-diff-removed {
+    background: #ffcdd2;
+    color: #c62828;
+    text-decoration: line-through;
+    padding: 2px 4px;
+    border-radius: 3px;
+    font-weight: 500;
+} 

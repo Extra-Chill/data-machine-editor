@@ -1,0 +1,18 @@
+{
+	"name": "data-machine-editor",
+	"version": "0.1.0",
+	"description": "Editor integration extension for Data Machine",
+	"scripts": {
+		"build": "wp-scripts build",
+		"start": "wp-scripts start",
+		"lint:js": "wp-scripts lint-js",
+		"lint:css": "wp-scripts lint-style"
+	},
+	"devDependencies": {
+		"@wordpress/scripts": "^26.19.0"
+	},
+	"dependencies": {
+		"@wordpress/api-fetch": "^7.0.0",
+		"@wordpress/interface": "^9.11.0"
+	}
+}

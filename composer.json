@@ -1,0 +1,20 @@
+{
+	"name": "extra-chill/data-machine-editor",
+	"description": "Editor integration extension for Data Machine. Inline diff visualization, accept/reject review, and Gutenberg editor tools.",
+	"version": "0.1.0",
+	"license": "GPL-2.0-or-later",
+	"require": {
+		"php": ">=8.2"
+	},
+	"autoload": {
+		"psr-4": {
+			"DataMachineEditor\\": "inc/"
+		}
+	},
+	"authors": [
+		{
+			"name": "Chris Huber",
+			"email": "chris@chubes.net"
+		}
+	]
+}

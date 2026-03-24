@@ -1,0 +1,35 @@
+{
+  "apiVersion": 3,
+  "name": "datamachine/diff",
+  "title": "Data Machine Diff",
+  "category": "common",
+  "icon": "editor-code",
+  "description": "A block containing AI-suggested changes that can be accepted or rejected.",
+  "keywords": ["diff", "ai", "datamachine", "change", "revision"],
+  "attributes": {
+    "diffId": { "type": "string" },
+    "diffType": { "type": "string", "default": "edit" },
+    "originalContent": { "type": "string" },
+    "replacementContent": { "type": "string" },
+    "status": { "type": "string", "default": "pending" },
+    "toolCallId": { "type": "string" },
+    "editType": { "type": "string", "default": "content" },
+    "searchPattern": { "type": "string" },
+    "caseSensitive": { "type": "boolean", "default": false },
+    "originalBlockContent": { "type": "string" },
+    "originalBlockType": { "type": "string" }
+  },
+  "supports": {
+    "html": false,
+    "align": false,
+    "anchor": true
+  },
+  "usesContext": ["postId", "postType"],
+  "providesContext": {
+    "datamachine/diffId": "diffId",
+    "datamachine/diffType": "diffType"
+  },
+  "editorScript": "datamachine-diff-block",
+  "editorStyle": "datamachine-diff-block",
+  "style": "datamachine-diff-block"
+} 
