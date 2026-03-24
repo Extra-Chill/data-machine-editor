@@ -5,11 +5,21 @@
 	"scripts": {
 		"build": "wp-scripts build",
 		"start": "wp-scripts start",
+		"typecheck": "tsc --noEmit",
 		"lint:js": "wp-scripts lint-js",
 		"lint:css": "wp-scripts lint-style"
 	},
 	"devDependencies": {
-		"@wordpress/scripts": "^26.19.0"
+		"@types/wordpress__api-fetch": "^3.23.0",
+		"@types/wordpress__block-editor": "^15.0.0",
+		"@types/wordpress__blocks": "^15.10.0",
+		"@types/wordpress__components": "^23.8.0",
+		"@types/wordpress__data": "^7.0.0",
+		"@types/wordpress__editor": "^14.12.0",
+		"@types/wordpress__element": "^2.14.0",
+		"@types/wordpress__i18n": "^3.11.0",
+		"@wordpress/scripts": "^26.19.0",
+		"typescript": "^5.4.0"
 	},
 	"dependencies": {
 		"@wordpress/api-fetch": "^7.0.0",
