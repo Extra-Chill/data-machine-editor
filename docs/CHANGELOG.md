@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.2.0] - 2026-03-24
+
+### Added
+- InsertContentAbility — positional content insertion with diff preview
+- add Gutenberg editor chat sidebar powered by @extrachill/chat
+- register editor.md context file via datamachine_default_context_files
+
+### Changed
+- make diff block headless: abstract core/editor into EditorContext
+- remove InsertContentAbility — moved to data-machine core
+- migrate all JS source to TypeScript + add README
+- Initial plugin scaffold with datamachine/diff block ported from Wordsurf
+
 ## 0.1.0 — 2026-03-24
 
 ### Added
