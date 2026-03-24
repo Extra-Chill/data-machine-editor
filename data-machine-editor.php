@@ -52,6 +52,9 @@ add_action( 'plugins_loaded', function () {
 	// Register abilities.
 	new DataMachineEditor\Abilities\DiffAbilities();
 
+	// Register editor context memory file.
+	add_filter( 'datamachine_default_context_files', 'datamachine_editor_register_context' );
+
 	// Register the diff block.
 	add_action( 'init', 'datamachine_editor_register_blocks' );
 
@@ -59,6 +62,48 @@ add_action( 'plugins_loaded', function () {
 	add_action( 'enqueue_block_editor_assets', 'datamachine_editor_enqueue_assets' );
 
 }, 20 );
+
+/**
+ * Register editor context memory file.
+ *
+ * Scaffolds contexts/editor.md with diff workflow and content editing instructions.
+ * The file is written once — after that, the agent owns it.
+ *
+ * @param array $defaults Context slug => markdown content.
+ * @return array
+ */
+function datamachine_editor_register_context( array $defaults ): array {
+	$defaults['editor'] = <<<'MD'
+# Editor Context
+
+This context is active when you are editing post content through the Gutenberg block editor. You have tools for surgical block-level edits with inline diff visualization.
+
+## Diff Workflow
+
+When editing content, changes are presented as inline diffs using `<ins>` (additions) and `<del>` (removals) tags inside `datamachine/diff` blocks. The user reviews each change and accepts or rejects it individually.
+
+Three diff modes are available:
+- **edit** — Surgical text replacement within an existing block. Shows word-level changes.
+- **write** — Full block replacement. Shows the complete before/after with word-level diff.
+- **insert** — New content added between existing blocks. Shows the addition only.
+
+## Review Protocol
+
+- Present changes as diffs — never silently modify content.
+- Each diff block can be accepted or rejected independently.
+- When all diffs in a tool call are resolved, chat continuation fires automatically.
+- Bulk accept/reject is available for batching multiple changes.
+
+## Content Editing Principles
+
+- Preserve the author's voice — suggest improvements, don't rewrite.
+- Focus on clarity, grammar, and factual accuracy.
+- When restructuring, explain why in the diff context.
+- Never remove content without a clear reason.
+MD;
+
+	return $defaults;
+}
 
 /**
  * Register Gutenberg blocks.
