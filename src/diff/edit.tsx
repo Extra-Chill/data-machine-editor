@@ -17,6 +17,8 @@ import {
 } from '@wordpress/components';
 import { useState, useEffect } from '@wordpress/element';
 import { useDispatch, useSelect } from '@wordpress/data';
+import { useEditorContext } from '../context/EditorContext';
+import { AutoEditorProvider } from '../context/AutoEditorProvider';
 import { DiffRenderer } from './DiffRenderer';
 import { DiffActions } from './DiffActions';
 import type { DiffBlockAttributes, GutenbergBlock } from '../types';
@@ -27,7 +29,7 @@ interface EditProps {
 	clientId: string;
 }
 
-export default function Edit( {
+function EditInner( {
 	attributes,
 	setAttributes,
 	clientId,
@@ -44,10 +46,7 @@ export default function Edit( {
 	const [ innerBlocksInitialized, setInnerBlocksInitialized ] =
 		useState( false );
 
-	const currentPostId: number = useSelect(
-		( select ) => select( 'core/editor' ).getCurrentPostId(),
-		[]
-	);
+	const { postId: currentPostId } = useEditorContext();
 
 	const { replaceInnerBlocks } = useDispatch( 'core/block-editor' );
 	const innerBlocks: GutenbergBlock[] = useSelect(
@@ -210,5 +209,19 @@ export default function Edit( {
 				</div>
 			</div>
 		</>
+	);
+}
+
+/**
+ * Edit component wrapped with AutoEditorProvider.
+ *
+ * In wp-admin: reads postId from core/editor.
+ * In headless/frontend IBE: uses parent EditorProvider or defaults.
+ */
+export default function Edit( props: EditProps ): JSX.Element {
+	return (
+		<AutoEditorProvider>
+			<EditInner { ...props } />
+		</AutoEditorProvider>
 	);
 }

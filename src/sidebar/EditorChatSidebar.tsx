@@ -6,8 +6,8 @@
  */
 
 import { useCallback, useState } from '@wordpress/element';
-import { useSelect } from '@wordpress/data';
 import apiFetch from '@wordpress/api-fetch';
+import { useEditorContext } from '../context/EditorContext';
 import {
 	useChat,
 	ChatMessages,
@@ -52,16 +52,7 @@ function extractDiffContext( toolCalls: ToolCall[] ): DiffContextItem[] {
 }
 
 export function EditorChatSidebar(): JSX.Element {
-	const currentPostId: number = useSelect(
-		( select ) => select( 'core/editor' ).getCurrentPostId(),
-		[]
-	);
-
-	const postTitle: string = useSelect(
-		( select ) =>
-			select( 'core/editor' ).getEditedPostAttribute( 'title' ),
-		[]
-	);
+	const { postId: currentPostId, postTitle } = useEditorContext();
 
 	const [ diffContext, setDiffContext ] = useState< DiffContext >( {
 		diffs: [],

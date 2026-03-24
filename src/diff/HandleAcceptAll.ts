@@ -6,13 +6,29 @@ import { DiffActions } from './DiffActions';
 import { FindDiffBlocks } from './FindDiffBlocks';
 import { diffTracker } from '../editor/DiffTracker';
 
+/**
+ * Resolve the current post ID from either the provided value
+ * or the core/editor store (wp-admin fallback).
+ */
+function resolvePostId( postId?: number ): number {
+	if ( postId && postId > 0 ) {
+		return postId;
+	}
+
+	// Fallback: try core/editor if available (wp-admin context).
+	try {
+		const editor = wp?.data?.select?.( 'core/editor' ) as Record< string, CallableFunction > | undefined;
+		return editor?.getCurrentPostId?.() ?? 0;
+	} catch {
+		return 0;
+	}
+}
+
 export class HandleAcceptAll {
 	/** Accept all diff blocks in the editor. */
-	static async acceptAll(): Promise< number > {
-		const { getCurrentPostId } = wp.data.select( 'core/editor' );
-
+	static async acceptAll( postId?: number ): Promise< number > {
+		const currentPostId = resolvePostId( postId );
 		const diffBlocks = FindDiffBlocks.findAllDiffBlocks();
-		const currentPostId: number = getCurrentPostId();
 
 		console.log(
 			'HandleAcceptAll: Processing',
@@ -48,11 +64,9 @@ export class HandleAcceptAll {
 	}
 
 	/** Reject all diff blocks in the editor. */
-	static async rejectAll(): Promise< number > {
-		const { getCurrentPostId } = wp.data.select( 'core/editor' );
-
+	static async rejectAll( postId?: number ): Promise< number > {
+		const currentPostId = resolvePostId( postId );
 		const diffBlocks = FindDiffBlocks.findAllDiffBlocks();
-		const currentPostId: number = getCurrentPostId();
 
 		console.log(
 			'HandleAcceptAll: Rejecting',

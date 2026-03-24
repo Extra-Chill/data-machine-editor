@@ -9,6 +9,7 @@
 import { useEffect, useState, useRef } from '@wordpress/element';
 import { useSelect, useDispatch } from '@wordpress/data';
 import { Button } from '@wordpress/components';
+import { useEditorContext } from '../context/EditorContext';
 import { diffTracker } from './DiffTracker';
 import type { DiffContext, DiffContextItem, GutenbergBlock } from '../types';
 
@@ -35,8 +36,7 @@ export const InlineDiffManager = ( {
 		[]
 	);
 
-	const { lockPostSaving, unlockPostSaving } =
-		useDispatch( 'core/editor' );
+	const { lockPostSaving, unlockPostSaving } = useEditorContext();
 	const { replaceBlock, resetBlocks } =
 		useDispatch( 'core/block-editor' );
 
