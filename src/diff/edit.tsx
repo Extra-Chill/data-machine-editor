@@ -17,6 +17,7 @@ import {
 } from '@wordpress/components';
 import { useState, useEffect } from '@wordpress/element';
 import { useDispatch, useSelect } from '@wordpress/data';
+import { ActionRow, InlineStatus } from '@extrachill/components';
 import { useEditorContext } from '../context/EditorContext';
 import { AutoEditorProvider } from '../context/AutoEditorProvider';
 import { DiffRenderer } from './DiffRenderer';
@@ -104,14 +105,17 @@ function EditInner( {
 	const renderActionButtons = () => {
 		if ( status !== 'pending' ) {
 			return (
-				<div className="datamachine-diff-status">
+				<InlineStatus
+					tone={ status === 'accepted' ? 'success' : 'error' }
+					className="datamachine-diff-status"
+				>
 					{ status === 'accepted' ? '✓ Accepted' : '✗ Rejected' }
-				</div>
+				</InlineStatus>
 			);
 		}
 
 		return (
-			<div className="datamachine-diff-actions">
+			<ActionRow className="datamachine-diff-actions">
 				<Button
 					variant="primary"
 					onClick={ handleAccept }
@@ -128,7 +132,7 @@ function EditInner( {
 				>
 					{ isProcessing ? 'Rejecting...' : 'Reject' }
 				</Button>
-			</div>
+			</ActionRow>
 		);
 	};
 

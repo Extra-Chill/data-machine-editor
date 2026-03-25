@@ -94,8 +94,6 @@
 }
 
 .datamachine-diff-actions {
-    display: flex;
-    gap: 8px;
     margin-top: 12px;
 }
 
@@ -124,21 +122,6 @@
 .datamachine-diff-status {
     margin-top: 12px;
     font-weight: bold;
-    text-align: center;
-    padding: 8px;
-    border-radius: 4px;
-    background: #e0e0e0;
-    color: #666;
-}
-
-.datamachine-diff-block.datamachine-diff-accepted .datamachine-diff-status {
-    background: #c8e6c9;
-    color: #2e7d32;
-}
-
-.datamachine-diff-block.datamachine-diff-rejected .datamachine-diff-status {
-    background: #ffcdd2;
-    color: #c62828;
 }
 
 /* Inline diff tags styling */

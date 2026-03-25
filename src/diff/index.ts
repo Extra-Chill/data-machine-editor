@@ -4,6 +4,7 @@
 
 import { registerBlockType } from '@wordpress/blocks';
 import { __ } from '@wordpress/i18n';
+import '@extrachill/components/styles/components.scss';
 import Edit from './edit';
 import Save from './save';
 import './style.css';
