@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.2.1] - 2026-03-25
+
+### Changed
+- delegate resolve-diff to core, remove ability registration
+
 ## [0.2.0] - 2026-03-24
 
 ### Added
