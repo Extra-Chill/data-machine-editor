@@ -1,87 +1,44 @@
 <?php
 /**
- * DiffAbilities — Registers diff-related abilities for the editor extension.
+ * DiffAbilities — Editor-specific diff resolution.
+ *
+ * The Gutenberg bridge for diff resolution. Core (`data-machine`) owns the
+ * `datamachine/resolve-diff` ability and `/datamachine/v1/diff/resolve`
+ * endpoint for universal server-side diff resolution (Roadie, CLI, etc.).
+ *
+ * This class provides the editor-specific REST endpoint at
+ * `/datamachine/v1/editor/diff/resolve` which:
+ *   - Fires the `datamachine_editor_diff_resolved` action for Gutenberg
+ *     side effects (DiffTracker, block cleanup)
+ *   - Delegates to core's ResolveDiffAbility when a pending diff exists
+ *     in the PendingDiffStore (for diffs created via preview mode)
+ *   - Returns `continue_chat` for the frontend DiffTracker
  *
  * @package DataMachineEditor\Abilities
+ * @since 0.2.0
  */
 
 namespace DataMachineEditor\Abilities;
 
 use DataMachine\Abilities\PermissionHelper;
+use DataMachine\Abilities\Content\PendingDiffStore;
+use DataMachine\Abilities\Content\ResolveDiffAbility;
 
 class DiffAbilities {
 
 	private static bool $registered = false;
 
 	public function __construct() {
-		if ( ! class_exists( 'WP_Ability' ) ) {
-			return;
-		}
-
 		if ( self::$registered ) {
 			return;
 		}
 
-		$this->register_abilities();
 		$this->register_rest_routes();
-
 		self::$registered = true;
 	}
 
 	/**
-	 * Register WordPress Abilities.
-	 */
-	private function register_abilities(): void {
-		$register = function () {
-			wp_register_ability( 'datamachine/resolve-diff', array(
-				'label'               => 'Resolve Diff',
-				'description'         => 'Resolve an editor diff block (accept or reject).',
-				'category'            => 'datamachine',
-				'input_schema'        => array(
-					'type'       => 'object',
-					'required'   => array( 'decision', 'diff_id', 'post_id' ),
-					'properties' => array(
-						'decision'     => array(
-							'type'        => 'string',
-							'enum'        => array( 'accepted', 'rejected' ),
-							'description' => 'Whether the diff was accepted or rejected.',
-						),
-						'diff_id'      => array(
-							'type'        => 'string',
-							'description' => 'The diff block identifier.',
-						),
-						'tool_call_id' => array(
-							'type'        => 'string',
-							'description' => 'The originating tool call identifier.',
-						),
-						'post_id'      => array(
-							'type'    => 'integer',
-							'description' => 'The post being edited.',
-						),
-					),
-				),
-				'output_schema'       => array(
-					'type'       => 'object',
-					'properties' => array(
-						'success'       => array( 'type' => 'boolean' ),
-						'continue_chat' => array( 'type' => 'boolean' ),
-					),
-				),
-				'execute_callback'    => array( self::class, 'resolve_diff' ),
-				'permission_callback' => fn() => PermissionHelper::can( 'chat' ),
-				'meta'                => array( 'show_in_rest' => false ),
-			) );
-		};
-
-		if ( doing_action( 'wp_abilities_api_init' ) ) {
-			$register();
-		} elseif ( ! did_action( 'wp_abilities_api_init' ) ) {
-			add_action( 'wp_abilities_api_init', $register );
-		}
-	}
-
-	/**
-	 * Register REST routes for diff resolution.
+	 * Register REST routes for editor diff resolution.
 	 */
 	private function register_rest_routes(): void {
 		add_action( 'rest_api_init', function () {
@@ -116,60 +73,52 @@ class DiffAbilities {
 	}
 
 	/**
-	 * REST handler — delegates to the ability.
+	 * REST handler — editor bridge.
+	 *
+	 * Handles both the legacy Gutenberg-only flow (client-side block
+	 * resolution) and the new core preview flow (server-side apply).
 	 */
 	public static function handle_rest_resolve( \WP_REST_Request $request ): \WP_REST_Response {
-		$result = self::resolve_diff( array(
-			'decision'     => $request->get_param( 'decision' ),
-			'diff_id'      => $request->get_param( 'diff_id' ),
-			'tool_call_id' => $request->get_param( 'tool_call_id' ) ?? '',
-			'post_id'      => $request->get_param( 'post_id' ),
-		) );
-
-		return new \WP_REST_Response( $result, $result['success'] ? 200 : 400 );
-	}
-
-	/**
-	 * Execute callback for the resolve-diff ability.
-	 *
-	 * Records the user decision and signals whether the chat conversation
-	 * should continue (i.e. the AI had pending tool calls).
-	 */
-	public static function resolve_diff( array $input ): array {
-		$decision     = $input['decision'];
-		$diff_id      = $input['diff_id'];
-		$tool_call_id = $input['tool_call_id'] ?? '';
-		$post_id      = (int) $input['post_id'];
+		$decision     = $request->get_param( 'decision' );
+		$diff_id      = $request->get_param( 'diff_id' );
+		$tool_call_id = $request->get_param( 'tool_call_id' ) ?? '';
+		$post_id      = (int) $request->get_param( 'post_id' );
 
 		// Verify the user can edit this post.
 		if ( ! current_user_can( 'edit_post', $post_id ) ) {
-			return array(
+			return new \WP_REST_Response( array(
 				'success'       => false,
 				'continue_chat' => false,
 				'error'         => 'You do not have permission to edit this post.',
-			);
+			), 403 );
 		}
 
-		/**
-		 * Fires when a diff block is resolved.
-		 *
-		 * Other plugins (e.g. analytics, chat session managers) can hook here
-		 * to record the decision or trigger side effects.
-		 *
-		 * @param string $decision     'accepted' or 'rejected'.
-		 * @param string $diff_id      The diff block identifier.
-		 * @param string $tool_call_id The originating tool call.
-		 * @param int    $post_id      The post being edited.
-		 */
+		// If core has a pending diff for this ID, delegate to core's resolver.
+		// This handles diffs created via preview mode on edit/replace abilities.
+		if ( class_exists( PendingDiffStore::class ) && PendingDiffStore::get( $diff_id ) !== null ) {
+			$core_result = ResolveDiffAbility::execute( array(
+				'diff_id'  => $diff_id,
+				'decision' => $decision,
+			) );
+
+			// Fire the editor-specific action for Gutenberg side effects.
+			do_action( 'datamachine_editor_diff_resolved', $decision, $diff_id, $tool_call_id, $post_id );
+
+			return new \WP_REST_Response( array_merge( $core_result, array(
+				'continue_chat' => true,
+			) ), $core_result['success'] ? 200 : 400 );
+		}
+
+		// Legacy flow: no pending diff in core store. The editor resolved
+		// the diff client-side (ContentUpdater.removeDiffWrapper). Just
+		// fire the action and signal continuation.
 		do_action( 'datamachine_editor_diff_resolved', $decision, $diff_id, $tool_call_id, $post_id );
 
-		// Signal chat continuation — the frontend DiffTracker handles
-		// calling /chat/continue when all blocks are resolved.
-		return array(
+		return new \WP_REST_Response( array(
 			'success'       => true,
 			'continue_chat' => true,
 			'decision'      => $decision,
 			'diff_id'       => $diff_id,
-		);
+		), 200 );
 	}
 }
