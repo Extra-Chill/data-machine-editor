@@ -23,7 +23,7 @@
 	},
 	"dependencies": {
 		"@extrachill/chat": "github:Extra-Chill/chat",
-		"@extrachill/components": "^0.4.0",
+		"@extrachill/components": "^0.4.1",
 		"@wordpress/api-fetch": "^7.0.0",
 		"@wordpress/interface": "^9.11.0"
 	}
