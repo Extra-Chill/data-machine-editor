@@ -156,10 +156,7 @@ export function EditorChatSidebar(): JSX.Element {
 							/>
 							<TypingIndicator
 								visible={ chat.isLoading }
-								turnCount={ chat.turnCount }
-								label={ ( turn ) =>
-									`Working... (turn ${ turn })`
-								}
+								label={ chat.isLoading ? `Working... (turn ${ chat.turnCount })` : undefined }
 							/>
 						</div>
 

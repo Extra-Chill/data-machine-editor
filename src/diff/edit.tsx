@@ -24,6 +24,13 @@ import { DiffRenderer } from './DiffRenderer';
 import { DiffActions } from './DiffActions';
 import type { DiffBlockAttributes, GutenbergBlock } from '../types';
 
+const blockEditorSelect = ( select: unknown ): { getBlocks: ( clientId?: string ) => GutenbergBlock[] } =>
+	select as { getBlocks: ( clientId?: string ) => GutenbergBlock[] };
+
+const wpBlocks = wp.blocks as {
+	parse: ( content: string ) => GutenbergBlock[];
+};
+
 interface EditProps {
 	attributes: DiffBlockAttributes;
 	setAttributes: ( attrs: Partial< DiffBlockAttributes > ) => void;
@@ -53,7 +60,7 @@ function EditInner( {
 
 	const { replaceInnerBlocks } = useDispatch( 'core/block-editor' );
 	const innerBlocks: GutenbergBlock[] = useSelect(
-		( select ) => select( 'core/block-editor' ).getBlocks( clientId ),
+		( select ) => blockEditorSelect( select( 'core/block-editor' ) ).getBlocks( clientId ),
 		[ clientId ]
 	);
 
@@ -65,8 +72,7 @@ function EditInner( {
 			return;
 		}
 		try {
-			const parsedBlocks: GutenbergBlock[] =
-				wp.blocks.parse( seedContent );
+			const parsedBlocks = wpBlocks.parse( seedContent );
 
 			if ( parsedBlocks.length > 0 ) {
 				const blocks =
@@ -161,12 +167,14 @@ function EditInner( {
 							'Diff Type',
 							'data-machine-editor'
 						) }
-						value={ diffType }
-						options={ [
-							{ label: 'Edit', value: 'edit' },
-							{ label: 'Insert', value: 'insert' },
-							{ label: 'Delete', value: 'delete' },
-						] }
+					value={ diffType }
+					options={ [
+						{ label: 'Edit', value: 'edit' },
+						{ label: 'Replace', value: 'replace' },
+						{ label: 'Insert', value: 'insert' },
+						{ label: 'Write', value: 'write' },
+						{ label: 'Delete', value: 'delete' },
+					] }
 						onChange={ ( value: string ) =>
 							setAttributes( { diffType: value as DiffBlockAttributes[ 'diffType' ] } )
 						}

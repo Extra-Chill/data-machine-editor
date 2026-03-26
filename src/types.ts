@@ -18,6 +18,7 @@ export type DiffDecision = 'accepted' | 'rejected';
 
 /** Attributes stored on the datamachine/diff block. */
 export interface DiffBlockAttributes {
+	[ key: string ]: unknown;
 	diffId: string;
 	diffType: DiffType;
 	originalContent: string;

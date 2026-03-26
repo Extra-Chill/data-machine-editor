@@ -13,6 +13,15 @@ import { useEditorContext } from '../context/EditorContext';
 import { diffTracker } from './DiffTracker';
 import type { DiffContext, DiffContextItem, GutenbergBlock } from '../types';
 
+const wpBlocks = wp.blocks as {
+	parse: ( content: string ) => GutenbergBlock[];
+	serialize: ( blocks: GutenbergBlock[] ) => string;
+	createBlock: ( name: string, attributes: Record< string, unknown > ) => GutenbergBlock;
+};
+
+const blockEditorSelect = ( select: unknown ): { getBlocks: () => GutenbergBlock[] } =>
+	select as { getBlocks: () => GutenbergBlock[] };
+
 function buildDiffWrapperBlock( diff: DiffContextItem, blocks: GutenbergBlock[] ): GutenbergBlock | null {
 	const item = diff.diff.items?.[ 0 ];
 	const blockIndex = typeof item?.blockIndex === 'number' ? item.blockIndex : 0;
@@ -23,9 +32,9 @@ function buildDiffWrapperBlock( diff: DiffContextItem, blocks: GutenbergBlock[] 
 	}
 
 	const originalBlocks = targetBlock ? [ targetBlock ] : [];
-	const originalBlockContent = originalBlocks.length > 0 ? wp.blocks.serialize( originalBlocks ) : '';
+	const originalBlockContent = originalBlocks.length > 0 ? wpBlocks.serialize( originalBlocks ) : '';
 
-	return wp.blocks.createBlock( 'datamachine/diff', {
+	return wpBlocks.createBlock( 'datamachine/diff', {
 		diffId: diff.diff.diffId,
 		diffType: diff.diff.diffType,
 		originalContent: diff.diff.originalContent,
@@ -64,7 +73,7 @@ export const InlineDiffManager = ( {
 	const processedDiffsRef = useRef< Set< string > >( new Set() );
 
 	const blocks: GutenbergBlock[] = useSelect(
-		( select ) => select( 'core/block-editor' ).getBlocks(),
+		( select ) => blockEditorSelect( select( 'core/block-editor' ) ).getBlocks(),
 		[]
 	);
 
@@ -97,7 +106,7 @@ export const InlineDiffManager = ( {
 			) {
 				// Full replacement (write_to_post).
 				if ( currentDiff.target_blocks[ 0 ].is_full_replacement ) {
-					const parsed = wp.blocks.parse(
+					const parsed = wpBlocks.parse(
 						currentDiff.target_blocks[ 0 ].diff_block_content ?? ''
 					) as GutenbergBlock[];
 
@@ -118,9 +127,7 @@ export const InlineDiffManager = ( {
 				for ( const targetInfo of currentDiff.target_blocks ) {
 					const { block_index, diff_wrapper_block } = targetInfo;
 
-					const parsedDiffBlock = (
-						wp.blocks.parse( diff_wrapper_block ) as GutenbergBlock[]
-					)[ 0 ];
+					const parsedDiffBlock = wpBlocks.parse( diff_wrapper_block )[ 0 ];
 
 					if ( ! parsedDiffBlock ) {
 						continue;
