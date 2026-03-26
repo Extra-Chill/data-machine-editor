@@ -9,11 +9,11 @@ const BLOCK_NAME = 'datamachine/diff';
 export class FindDiffBlocks {
 	/** Get all diff blocks currently in the editor. */
 	static findAllDiffBlocks(): DiffBlock[] {
-		const { getBlocks } = wp.data.select( 'core/block-editor' );
-		const blocks: GutenbergBlock[] = getBlocks();
-		return blocks.filter(
-			( block ): block is DiffBlock => block.name === BLOCK_NAME
-		);
+		const getBlocks = ( wp.data.select( 'core/block-editor' ) as {
+			getBlocks: () => GutenbergBlock[];
+		} ).getBlocks;
+		const blocks = getBlocks();
+		return blocks.filter( ( block ) => block.name === BLOCK_NAME ) as DiffBlock[];
 	}
 
 	/** Find diff blocks by diff ID. */

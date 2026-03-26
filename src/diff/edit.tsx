@@ -24,6 +24,13 @@ import { DiffRenderer } from './DiffRenderer';
 import { DiffActions } from './DiffActions';
 import type { DiffBlockAttributes, GutenbergBlock } from '../types';
 
+const blockEditorSelect = ( select: unknown ): { getBlocks: ( clientId?: string ) => GutenbergBlock[] } =>
+	select as { getBlocks: ( clientId?: string ) => GutenbergBlock[] };
+
+const wpBlocks = wp.blocks as {
+	parse: ( content: string ) => GutenbergBlock[];
+};
+
 interface EditProps {
 	attributes: DiffBlockAttributes;
 	setAttributes: ( attrs: Partial< DiffBlockAttributes > ) => void;
@@ -41,6 +48,8 @@ function EditInner( {
 		status,
 		caseSensitive,
 		originalBlockContent,
+		summary,
+		previewBlockContent,
 	} = attributes;
 
 	const [ isProcessing, setIsProcessing ] = useState( false );
@@ -51,18 +60,19 @@ function EditInner( {
 
 	const { replaceInnerBlocks } = useDispatch( 'core/block-editor' );
 	const innerBlocks: GutenbergBlock[] = useSelect(
-		( select ) => select( 'core/block-editor' ).getBlocks( clientId ),
+		( select ) => blockEditorSelect( select( 'core/block-editor' ) ).getBlocks( clientId ),
 		[ clientId ]
 	);
 
 	// Initialize inner blocks from originalBlockContent on first render.
 	useEffect( () => {
-		if ( innerBlocksInitialized || ! originalBlockContent ) {
+		const seedContent = diffType === 'insert' ? ( previewBlockContent || originalBlockContent ) : originalBlockContent;
+
+		if ( innerBlocksInitialized || ! seedContent ) {
 			return;
 		}
 		try {
-			const parsedBlocks: GutenbergBlock[] =
-				wp.blocks.parse( originalBlockContent );
+			const parsedBlocks = wpBlocks.parse( seedContent );
 
 			if ( parsedBlocks.length > 0 ) {
 				const blocks =
@@ -84,6 +94,8 @@ function EditInner( {
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [
+		diffType,
+		previewBlockContent,
 		originalBlockContent,
 		innerBlocks.length,
 		innerBlocksInitialized,
@@ -155,12 +167,14 @@ function EditInner( {
 							'Diff Type',
 							'data-machine-editor'
 						) }
-						value={ diffType }
-						options={ [
-							{ label: 'Edit', value: 'edit' },
-							{ label: 'Insert', value: 'insert' },
-							{ label: 'Delete', value: 'delete' },
-						] }
+					value={ diffType }
+					options={ [
+						{ label: 'Edit', value: 'edit' },
+						{ label: 'Replace', value: 'replace' },
+						{ label: 'Insert', value: 'insert' },
+						{ label: 'Write', value: 'write' },
+						{ label: 'Delete', value: 'delete' },
+					] }
 						onChange={ ( value: string ) =>
 							setAttributes( { diffType: value as DiffBlockAttributes[ 'diffType' ] } )
 						}
@@ -195,6 +209,8 @@ function EditInner( {
 					<span className="datamachine-diff-type-label">
 						{ diffType === 'write'
 							? 'Full Post Replacement'
+							: diffType === 'replace'
+							? 'Content Replacement'
 							: diffType === 'edit'
 							? 'Text Edit'
 							: diffType === 'insert'
@@ -203,6 +219,10 @@ function EditInner( {
 					</span>
 					{ renderActionButtons() }
 				</div>
+
+				{ summary ? (
+					<p className="datamachine-diff-summary">{ summary }</p>
+				) : null }
 
 				<div className="datamachine-diff-content">
 					<InnerBlocks
