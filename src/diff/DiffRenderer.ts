@@ -28,6 +28,14 @@ export class DiffRenderer {
 			);
 		}
 
+		if ( diffType === 'replace' && originalContent && replacementContent ) {
+			return DiffRenderer.applyReplaceTags(
+				innerBlocks,
+				originalContent,
+				replacementContent
+			);
+		}
+
 		if ( diffType === 'write' && originalContent && replacementContent ) {
 			return DiffRenderer.applyWriteTags(
 				innerBlocks,
@@ -67,6 +75,31 @@ export class DiffRenderer {
 				};
 			}
 			return block;
+		} );
+	}
+
+	/** Apply replacement diff tags across existing block content. */
+	static applyReplaceTags(
+		innerBlocks: GutenbergBlock[],
+		originalContent: string,
+		replacementContent: string
+	): GutenbergBlock[] {
+		return innerBlocks.map( ( block ) => {
+			const content = block.attributes?.content as string | undefined;
+			if ( ! content ) {
+				return block;
+			}
+
+			return {
+				...block,
+				attributes: {
+					...block.attributes,
+					content: DiffRenderer.createWordLevelDiff(
+						originalContent,
+						replacementContent
+					),
+				},
+			};
 		} );
 	}
 

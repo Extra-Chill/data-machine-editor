@@ -5,7 +5,7 @@
  * and onToolCalls to intercept block edits and pipe them to InlineDiffManager.
  */
 
-import { useCallback, useState } from '@wordpress/element';
+import { useCallback, useEffect, useState } from '@wordpress/element';
 import apiFetch from '@wordpress/api-fetch';
 import { useEditorContext } from '../context/EditorContext';
 import {
@@ -15,36 +15,35 @@ import {
 	TypingIndicator,
 	ErrorBoundary,
 	SessionSwitcher,
+	type ChatMessage,
 } from '@extrachill/chat';
-import type { ToolCall } from '@extrachill/chat';
 import { InlineDiffManager } from '../editor/InlineDiffManager';
 import type { DiffContext, DiffContextItem } from '../types';
+import { parseCanonicalDiffFromJson } from '../diff/canonicalDiff';
 
 /**
  * Extract diff-producing tool call results into a DiffContext
  * that InlineDiffManager can consume.
  */
-function extractDiffContext( toolCalls: ToolCall[] ): DiffContextItem[] {
+function extractDiffContextFromMessages( messages: ChatMessage[] ): DiffContextItem[] {
 	const diffs: DiffContextItem[] = [];
 
-	for ( const tc of toolCalls ) {
-		// Content editing tools produce target_blocks in their parameters.
-		if (
-			tc.name === 'edit_post_blocks' ||
-			tc.name === 'replace_post_blocks'
-		) {
-			const params = tc.parameters as Record< string, unknown >;
-			const targetBlocks = params.target_blocks as
-				| DiffContextItem[ 'target_blocks' ]
-				| undefined;
+	for ( const message of messages ) {
+		if ( message.role !== 'tool_result' || ! message.toolResult?.toolName ) {
+			continue;
+		}
 
-			if ( targetBlocks?.length ) {
-				diffs.push( {
-					tool_call_id: tc.id,
-					diff_id: ( params.diff_id as string ) ?? tc.id,
-					target_blocks: targetBlocks,
-				} );
-			}
+		if ( ! [ 'edit_post_blocks', 'replace_post_blocks', 'insert_content' ].includes( message.toolResult.toolName ) ) {
+			continue;
+		}
+
+		const diff = parseCanonicalDiffFromJson( message.content );
+		if ( diff ) {
+			diffs.push( {
+				tool_call_id: diff.editor?.toolCallId as string ?? message.id,
+				diff_id: diff.diffId,
+				diff,
+			} );
 		}
 	}
 
@@ -59,18 +58,6 @@ export function EditorChatSidebar(): JSX.Element {
 	} );
 	const [ showSessions, setShowSessions ] = useState( false );
 
-	const handleToolCalls = useCallback(
-		( toolCalls: ToolCall[] ) => {
-			const diffs = extractDiffContext( toolCalls );
-			if ( diffs.length > 0 ) {
-				setDiffContext( ( prev ) => ( {
-					diffs: [ ...prev.diffs, ...diffs ],
-				} ) );
-			}
-		},
-		[]
-	);
-
 	const chat = useChat( {
 		basePath: '/datamachine/v1/chat',
 		fetchFn: apiFetch as Parameters< typeof useChat >[ 0 ][ 'fetchFn' ],
@@ -79,8 +66,26 @@ export function EditorChatSidebar(): JSX.Element {
 			context: 'editor',
 		},
 		sessionContext: 'editor',
-		onToolCalls: handleToolCalls,
 	} );
+
+	useEffect( () => {
+		const diffs = extractDiffContextFromMessages( chat.messages );
+		if ( diffs.length === 0 ) {
+			return;
+		}
+
+		setDiffContext( ( prev ) => {
+			const seen = new Set( prev.diffs.map( ( diff ) => diff.diff.diffId ) );
+			const additions = diffs.filter( ( diff ) => ! seen.has( diff.diff.diffId ) );
+			if ( additions.length === 0 ) {
+				return prev;
+			}
+
+			return {
+				diffs: [ ...prev.diffs, ...additions ],
+			};
+		} );
+	}, [ chat.messages ] );
 
 	const handleDiffAccept = useCallback( ( diff: DiffContextItem ) => {
 		setDiffContext( ( prev ) => ( {

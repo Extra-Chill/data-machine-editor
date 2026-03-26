@@ -2,8 +2,10 @@
  * Shared types for the Data Machine Editor plugin.
  */
 
+import type { CanonicalDiffData, CanonicalDiffType } from './diff/canonicalDiff';
+
 /** Diff mode: how the change is applied to the content. */
-export type DiffType = 'edit' | 'write' | 'insert' | 'delete';
+export type DiffType = CanonicalDiffType | 'write' | 'delete';
 
 /** Review status of a diff block. */
 export type DiffStatus = 'pending' | 'accepted' | 'rejected';
@@ -20,6 +22,7 @@ export interface DiffBlockAttributes {
 	diffType: DiffType;
 	originalContent: string;
 	replacementContent: string;
+	summary?: string;
 	status: DiffStatus;
 	toolCallId: string;
 	editType: EditType;
@@ -30,6 +33,7 @@ export interface DiffBlockAttributes {
 	originalBlockType: string;
 	position: string;
 	insertionPoint: string;
+	previewBlockContent?: string;
 }
 
 /** A Gutenberg block as returned by the block-editor store. */
@@ -95,6 +99,7 @@ export interface TargetBlockInfo {
 export interface DiffContextItem {
 	diff_id?: string;
 	tool_call_id: string;
+	diff: CanonicalDiffData;
 	target_blocks?: TargetBlockInfo[];
 }
 

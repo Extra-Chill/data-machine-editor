@@ -41,6 +41,8 @@ function EditInner( {
 		status,
 		caseSensitive,
 		originalBlockContent,
+		summary,
+		previewBlockContent,
 	} = attributes;
 
 	const [ isProcessing, setIsProcessing ] = useState( false );
@@ -57,12 +59,14 @@ function EditInner( {
 
 	// Initialize inner blocks from originalBlockContent on first render.
 	useEffect( () => {
-		if ( innerBlocksInitialized || ! originalBlockContent ) {
+		const seedContent = diffType === 'insert' ? ( previewBlockContent || originalBlockContent ) : originalBlockContent;
+
+		if ( innerBlocksInitialized || ! seedContent ) {
 			return;
 		}
 		try {
 			const parsedBlocks: GutenbergBlock[] =
-				wp.blocks.parse( originalBlockContent );
+				wp.blocks.parse( seedContent );
 
 			if ( parsedBlocks.length > 0 ) {
 				const blocks =
@@ -84,6 +88,8 @@ function EditInner( {
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [
+		diffType,
+		previewBlockContent,
 		originalBlockContent,
 		innerBlocks.length,
 		innerBlocksInitialized,
@@ -195,6 +201,8 @@ function EditInner( {
 					<span className="datamachine-diff-type-label">
 						{ diffType === 'write'
 							? 'Full Post Replacement'
+							: diffType === 'replace'
+							? 'Content Replacement'
 							: diffType === 'edit'
 							? 'Text Edit'
 							: diffType === 'insert'
@@ -203,6 +211,10 @@ function EditInner( {
 					</span>
 					{ renderActionButtons() }
 				</div>
+
+				{ summary ? (
+					<p className="datamachine-diff-summary">{ summary }</p>
+				) : null }
 
 				<div className="datamachine-diff-content">
 					<InnerBlocks

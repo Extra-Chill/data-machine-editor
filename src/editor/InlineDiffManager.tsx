@@ -13,6 +13,38 @@ import { useEditorContext } from '../context/EditorContext';
 import { diffTracker } from './DiffTracker';
 import type { DiffContext, DiffContextItem, GutenbergBlock } from '../types';
 
+function buildDiffWrapperBlock( diff: DiffContextItem, blocks: GutenbergBlock[] ): GutenbergBlock | null {
+	const item = diff.diff.items?.[ 0 ];
+	const blockIndex = typeof item?.blockIndex === 'number' ? item.blockIndex : 0;
+	const targetBlock = blocks[ blockIndex ];
+
+	if ( ! targetBlock && diff.diff.diffType !== 'insert' ) {
+		return null;
+	}
+
+	const originalBlocks = targetBlock ? [ targetBlock ] : [];
+	const originalBlockContent = originalBlocks.length > 0 ? wp.blocks.serialize( originalBlocks ) : '';
+
+	return wp.blocks.createBlock( 'datamachine/diff', {
+		diffId: diff.diff.diffId,
+		diffType: diff.diff.diffType,
+		originalContent: diff.diff.originalContent,
+		replacementContent: diff.diff.replacementContent,
+		summary: diff.diff.summary ?? '',
+		status: diff.diff.status ?? 'pending',
+		toolCallId: diff.tool_call_id,
+		editType: ( diff.diff.editor?.editType as string ) ?? 'content',
+		searchPattern: ( diff.diff.editor?.searchPattern as string ) ?? '',
+		caseSensitive: Boolean( diff.diff.editor?.caseSensitive ),
+		isPreview: true,
+		originalBlockContent,
+		originalBlockType: targetBlock?.name ?? 'core/paragraph',
+		position: diff.diff.position ?? '',
+		insertionPoint: diff.diff.insertionPoint ?? '',
+		previewBlockContent: ( diff.diff.editor?.previewBlockContent as string ) ?? '',
+	} ) as GutenbergBlock;
+}
+
 interface InlineDiffManagerProps {
 	diffContext: DiffContext;
 	onAccept: ( diff: DiffContextItem ) => void;
@@ -123,6 +155,44 @@ export const InlineDiffManager = ( {
 						);
 					}
 				}
+			} else if ( currentDiff.diff ) {
+				const nonEmptyBlocks = blocks.filter( ( b ) => b.name !== null );
+				const item = currentDiff.diff.items?.[ 0 ];
+				const blockIndex = typeof item?.blockIndex === 'number' ? item.blockIndex : 0;
+				const diffBlock = buildDiffWrapperBlock( currentDiff, nonEmptyBlocks );
+
+				if ( ! diffBlock ) {
+					setIsPreviewing( false );
+					processedDiffsRef.current.delete( diffId );
+					return;
+				}
+
+				if ( currentDiff.diff.diffType === 'insert' ) {
+					const insertionIndex = typeof item?.blockIndex === 'number'
+						? item.blockIndex
+						: currentDiff.diff.position === 'beginning'
+							? 0
+							: nonEmptyBlocks.length;
+					const newBlocks = [ ...nonEmptyBlocks ];
+					newBlocks.splice( insertionIndex, 0, diffBlock );
+					resetBlocks( newBlocks );
+				} else {
+					const targetBlock = nonEmptyBlocks[ blockIndex ];
+					if ( ! targetBlock ) {
+						setIsPreviewing( false );
+						processedDiffsRef.current.delete( diffId );
+						return;
+					}
+
+					replaceBlock( targetBlock.clientId, diffBlock );
+				}
+
+				diffTracker.addDiffBlock( diffBlock.clientId, {
+					diffId: diffBlock.attributes.diffId as string,
+					toolCallId: diffBlock.attributes.toolCallId as string,
+					diffType: diffBlock.attributes.diffType as 'edit' | 'write' | 'insert' | 'delete',
+					originalBlockIndex: blockIndex,
+				} );
 			} else {
 				setIsPreviewing( false );
 				processedDiffsRef.current.delete( diffId );
