@@ -52,6 +52,14 @@ add_action( 'plugins_loaded', function () {
 	// Register abilities.
 	new DataMachineEditor\Abilities\DiffAbilities();
 
+	// Register editor execution context.
+	add_action( 'datamachine_contexts', function () {
+		\DataMachine\Engine\AI\ContextRegistry::register( 'editor', 40, array(
+			'label'       => __( 'Editor Agent', 'data-machine-editor' ),
+			'description' => __( 'Content editing in the Gutenberg block editor. Inline diff visualization with accept/reject workflow.', 'data-machine-editor' ),
+		) );
+	} );
+
 	// Register editor context memory file.
 	add_filter( 'datamachine_default_context_files', 'datamachine_editor_register_context' );
 
