@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.3.0] - 2026-04-02
+
+### Added
+- register editor execution context via ContextRegistry
+
+### Changed
+- adapt editor diffs to canonical previews
+
+### Fixed
+- restore green editor typecheck
+
 ## [0.2.2] - 2026-03-25
 
 ### Changed

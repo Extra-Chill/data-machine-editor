@@ -3,7 +3,7 @@
  * Plugin Name:       Data Machine Editor
  * Plugin URI:        https://github.com/Extra-Chill/data-machine-editor
  * Description:       Editor integration extension for Data Machine. Inline diff visualization, accept/reject review workflow, and Gutenberg editor tools for AI-powered content editing.
- * Version:           0.2.2
+ * Version:           0.3.0
  * Author:            Chris Huber
  * Author URI:        https://chubes.net
  * License:           GPL v2 or later
@@ -23,7 +23,7 @@ if ( ! defined( 'WPINC' ) ) {
 /**
  * Plugin constants.
  */
-define( 'DATAMACHINE_EDITOR_VERSION', '0.2.2' );
+define( 'DATAMACHINE_EDITOR_VERSION', '0.3.0' );
 define( 'DATAMACHINE_EDITOR_PATH', plugin_dir_path( __FILE__ ) );
 define( 'DATAMACHINE_EDITOR_URL', plugin_dir_url( __FILE__ ) );
 
