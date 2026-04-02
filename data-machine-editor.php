@@ -160,7 +160,7 @@ function datamachine_editor_enqueue_assets(): void {
 
 		wp_enqueue_style(
 			'datamachine-editor-sidebar',
-			DATAMACHINE_EDITOR_URL . 'build/style-editor-sidebar.css',
+			DATAMACHINE_EDITOR_URL . 'build/editor-sidebar.css',
 			array(),
 			$sidebar_asset['version']
 		);
