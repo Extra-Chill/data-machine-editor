@@ -68,7 +68,6 @@ add_action( 'plugins_loaded', function () {
 
 	// Enqueue editor assets.
 	add_action( 'enqueue_block_editor_assets', 'datamachine_editor_enqueue_assets' );
-
 }, 20 );
 
 /**
