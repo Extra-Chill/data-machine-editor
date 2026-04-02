@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.3.1] - 2026-04-02
+
+### Fixed
+- Fix PHPCS: remove blank line before closing brace
+- Fix editor sidebar CSS path: style-editor-sidebar.css → editor-sidebar.css
+
 ## [0.3.0] - 2026-04-02
 
 ### Added
