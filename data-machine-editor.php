@@ -52,16 +52,16 @@ add_action( 'plugins_loaded', function () {
 	// Register abilities.
 	new DataMachineEditor\Abilities\DiffAbilities();
 
-	// Register editor execution context.
-	add_action( 'datamachine_contexts', function () {
-		\DataMachine\Engine\AI\ContextRegistry::register( 'editor', 40, array(
+	// Register editor execution mode.
+	add_action( 'datamachine_agent_modes', function () {
+		\DataMachine\Engine\AI\AgentModeRegistry::register( 'editor', 40, array(
 			'label'       => __( 'Editor Agent', 'data-machine-editor' ),
 			'description' => __( 'Content editing in the Gutenberg block editor. Inline diff visualization with accept/reject workflow.', 'data-machine-editor' ),
 		) );
 	} );
 
-	// Register editor context memory file.
-	add_filter( 'datamachine_default_context_files', 'datamachine_editor_register_context' );
+	// Register editor mode guidance via directive filter.
+	add_filter( 'datamachine_agent_mode_editor', 'datamachine_editor_mode_guidance', 10, 2 );
 
 	// Register the diff block.
 	add_action( 'init', 'datamachine_editor_register_blocks' );
@@ -71,16 +71,19 @@ add_action( 'plugins_loaded', function () {
 }, 20 );
 
 /**
- * Register editor context memory file.
+ * Provide editor mode guidance via the datamachine_agent_mode_editor filter.
  *
- * Scaffolds contexts/editor.md with diff workflow and content editing instructions.
- * The file is written once — after that, the agent owns it.
+ * Returns the full guidance string for the editor execution mode.
+ * This replaces the former contexts/editor.md scaffolded file approach.
  *
- * @param array $defaults Context slug => markdown content.
- * @return array
+ * @since 0.4.0
+ *
+ * @param string $content Current guidance text (empty for editor since no built-in default).
+ * @param array  $payload Full request payload.
+ * @return string Editor mode guidance.
  */
-function datamachine_editor_register_context( array $defaults ): array {
-	$defaults['editor'] = <<<'MD'
+function datamachine_editor_mode_guidance( string $content, array $payload ): string {
+	return <<<'MD'
 # Editor Context
 
 This context is active when you are editing post content through the Gutenberg block editor. You have tools for surgical block-level edits with inline diff visualization.
@@ -108,8 +111,6 @@ Three diff modes are available:
 - When restructuring, explain why in the diff context.
 - Never remove content without a clear reason.
 MD;
-
-	return $defaults;
 }
 
 /**
