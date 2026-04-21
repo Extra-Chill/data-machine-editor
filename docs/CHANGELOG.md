@@ -1,5 +1,10 @@
 # Changelog
 
+## [Unreleased]
+
+### Changed
+- **AgentMode migration**: migrate to `AgentModeRegistry` and the `datamachine_agent_mode_editor` filter. Replaces the previous `ContextRegistry` registration for the editor mode, aligning with data-machine core #1129. (#4)
+
 ## [0.3.1] - 2026-04-02
 
 ### Fixed
