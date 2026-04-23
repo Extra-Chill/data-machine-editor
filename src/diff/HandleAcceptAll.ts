@@ -2,9 +2,9 @@
  * HandleAcceptAll — bulk accept/reject for all diff blocks in the editor.
  */
 
-import { DiffActions } from './DiffActions';
+import { ActionResolver } from './ActionResolver';
 import { FindDiffBlocks } from './FindDiffBlocks';
-import { diffTracker } from '../editor/DiffTracker';
+import { actionTracker } from '../editor/ActionTracker';
 
 /**
  * Resolve the current post ID from either the provided value
@@ -36,11 +36,11 @@ export class HandleAcceptAll {
 			'diff blocks'
 		);
 
-		diffTracker.startBulkOperation();
+		actionTracker.startBulkOperation();
 
 		for ( const diffBlock of diffBlocks ) {
 			try {
-				await DiffActions.handleAccept(
+				await ActionResolver.handleAccept(
 					diffBlock.attributes,
 					diffBlock.clientId,
 					currentPostId,
@@ -48,18 +48,18 @@ export class HandleAcceptAll {
 				);
 				console.log(
 					'HandleAcceptAll: Accepted diff block',
-					diffBlock.attributes.diffId
+					diffBlock.attributes.actionId
 				);
 			} catch ( error ) {
 				console.error(
 					'HandleAcceptAll: Error accepting diff block',
-					diffBlock.attributes.diffId,
+					diffBlock.attributes.actionId,
 					error
 				);
 			}
 		}
 
-		diffTracker.endBulkOperation( 'accepted' );
+		actionTracker.endBulkOperation( 'accepted' );
 		return diffBlocks.length;
 	}
 
@@ -74,11 +74,11 @@ export class HandleAcceptAll {
 			'diff blocks'
 		);
 
-		diffTracker.startBulkOperation();
+		actionTracker.startBulkOperation();
 
 		for ( const diffBlock of diffBlocks ) {
 			try {
-				await DiffActions.handleReject(
+				await ActionResolver.handleReject(
 					diffBlock.attributes,
 					diffBlock.clientId,
 					currentPostId,
@@ -86,18 +86,18 @@ export class HandleAcceptAll {
 				);
 				console.log(
 					'HandleAcceptAll: Rejected diff block',
-					diffBlock.attributes.diffId
+					diffBlock.attributes.actionId
 				);
 			} catch ( error ) {
 				console.error(
 					'HandleAcceptAll: Error rejecting diff block',
-					diffBlock.attributes.diffId,
+					diffBlock.attributes.actionId,
 					error
 				);
 			}
 		}
 
-		diffTracker.endBulkOperation( 'rejected' );
+		actionTracker.endBulkOperation( 'rejected' );
 		return diffBlocks.length;
 	}
 }

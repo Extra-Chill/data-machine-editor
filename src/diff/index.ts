@@ -23,7 +23,7 @@ registerBlockType( 'datamachine/diff', {
 		anchor: true,
 	},
 	attributes: {
-		diffId: { type: 'string', default: '' },
+		actionId: { type: 'string', default: '' },
 		diffType: { type: 'string', default: 'edit' },
 		originalContent: { type: 'string', default: '' },
 		replacementContent: { type: 'string', default: '' },

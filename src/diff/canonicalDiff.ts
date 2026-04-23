@@ -8,7 +8,7 @@ export interface CanonicalDiffItem {
 }
 
 export interface CanonicalDiffData {
-	diffId: string;
+	actionId: string;
 	diffType: CanonicalDiffType;
 	originalContent: string;
 	replacementContent: string;
@@ -30,15 +30,22 @@ export function parseCanonicalDiffFromJson( json: string ): CanonicalDiffData | 
 	try {
 		const parsed = JSON.parse( json ) as UnknownRecord;
 		const container = isRecord( parsed.data ) ? parsed.data : parsed;
-		const rawDiff = isRecord( container.diff ) ? container.diff : container;
 
-		const diffId = typeof rawDiff.diffId === 'string'
-			? rawDiff.diffId
-			: typeof rawDiff.diff_id === 'string'
-				? rawDiff.diff_id
-				: typeof container.diff_id === 'string'
-					? container.diff_id
-					: '';
+		// The canonical preview shape nests the diff payload under
+		// `preview` (from PendingActionHelper::stage()). Fall back to
+		// older shapes (`diff`, container itself) for resiliency while
+		// the editor wires up to the unified envelope.
+		const rawDiff = isRecord( container.preview )
+			? container.preview
+			: isRecord( container.diff )
+				? container.diff
+				: container;
+
+		const actionId = typeof rawDiff.actionId === 'string'
+			? rawDiff.actionId
+			: typeof container.action_id === 'string'
+				? container.action_id
+				: '';
 
 		const originalContent = typeof rawDiff.originalContent === 'string'
 			? rawDiff.originalContent
@@ -47,7 +54,7 @@ export function parseCanonicalDiffFromJson( json: string ): CanonicalDiffData | 
 			? rawDiff.replacementContent
 			: '';
 
-		if ( ! diffId && ! originalContent && ! replacementContent ) {
+		if ( ! actionId && ! originalContent && ! replacementContent ) {
 			return null;
 		}
 
@@ -66,7 +73,7 @@ export function parseCanonicalDiffFromJson( json: string ): CanonicalDiffData | 
 			: undefined;
 
 		return {
-			diffId,
+			actionId,
 			diffType: rawDiff.diffType === 'replace' || rawDiff.diffType === 'insert' ? rawDiff.diffType : 'edit',
 			originalContent,
 			replacementContent,

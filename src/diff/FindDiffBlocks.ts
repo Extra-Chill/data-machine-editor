@@ -16,10 +16,10 @@ export class FindDiffBlocks {
 		return blocks.filter( ( block ) => block.name === BLOCK_NAME ) as DiffBlock[];
 	}
 
-	/** Find diff blocks by diff ID. */
-	static findDiffBlocksByDiffId( diffId: string ): DiffBlock[] {
+	/** Find diff blocks by pending-action ID. */
+	static findDiffBlocksByActionId( actionId: string ): DiffBlock[] {
 		return this.findAllDiffBlocks().filter(
-			( block ) => block.attributes.diffId === diffId
+			( block ) => block.attributes.actionId === actionId
 		);
 	}
 

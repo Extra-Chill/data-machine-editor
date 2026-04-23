@@ -13,13 +13,13 @@ export type DiffStatus = 'pending' | 'accepted' | 'rejected';
 /** Target of the edit within the post. */
 export type EditType = 'content' | 'title' | 'excerpt';
 
-/** Decision the user makes on a diff. */
-export type DiffDecision = 'accepted' | 'rejected';
+/** Decision the user makes on a pending action. */
+export type ActionDecision = 'accepted' | 'rejected';
 
 /** Attributes stored on the datamachine/diff block. */
 export interface DiffBlockAttributes {
 	[ key: string ]: unknown;
-	diffId: string;
+	actionId: string;
 	diffType: DiffType;
 	originalContent: string;
 	replacementContent: string;
@@ -51,32 +51,32 @@ export interface DiffBlock extends GutenbergBlock {
 	attributes: DiffBlockAttributes;
 }
 
-/** Info tracked per diff block by DiffTracker. */
-export interface DiffInfo {
-	diffId: string;
+/** Info tracked per diff block by ActionTracker. */
+export interface ActionInfo {
+	actionId: string;
 	toolCallId: string;
 	diffType: DiffType;
 	originalBlockIndex?: number;
 	timestamp: number;
 }
 
-/** Shape returned by the resolve-diff REST endpoint. */
+/** Shape returned by the /editor/actions/resolve REST endpoint. */
 export interface ResolveResponse {
 	success: boolean;
 	continue_chat: boolean;
-	decision?: DiffDecision;
-	diff_id?: string;
+	decision?: ActionDecision;
+	action_id?: string;
 	error?: string;
 }
 
-/** Payload sent to the resolve-diff endpoint. */
+/** Payload sent to the /editor/actions/resolve endpoint. */
 export interface ResolvePayload {
 	tool_call_id: string;
-	diff_id: string;
+	action_id: string;
 	post_id: number;
 }
 
-/** Status snapshot from DiffTracker. */
+/** Status snapshot from ActionTracker. */
 export interface TrackerStatus {
 	activeDiffBlocks: string[];
 	totalDiffBlocks: number;
@@ -98,7 +98,7 @@ export interface TargetBlockInfo {
 
 /** Diff context passed to InlineDiffManager. */
 export interface DiffContextItem {
-	diff_id?: string;
+	action_id?: string;
 	tool_call_id: string;
 	diff: CanonicalDiffData;
 	target_blocks?: TargetBlockInfo[];

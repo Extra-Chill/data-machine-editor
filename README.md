@@ -16,11 +16,12 @@ When an AI agent edits post content through Data Machine, changes are presented 
 
 ### Review workflow
 
-1. AI makes edits via Data Machine content abilities (`edit-post-blocks`, `replace-post-blocks`)
-2. Changes appear as `datamachine/diff` blocks with inline `<ins>`/`<del>` tags
-3. User reviews each change and clicks Accept or Reject
-4. On resolution, the diff wrapper is removed and clean content remains
-5. When all diffs are resolved, chat continuation fires automatically
+1. AI makes edits via Data Machine content abilities (`edit-post-blocks`, `replace-post-blocks`, `insert-content`)
+2. Each content ability stages a pending action in `PendingActionStore` and returns a preview envelope
+3. Changes appear as `datamachine/diff` blocks with inline `<ins>`/`<del>` tags
+4. User reviews each change and clicks Accept or Reject
+5. On resolution, `/datamachine/v1/editor/actions/resolve` delegates to core's `ResolvePendingActionAbility`, the diff wrapper is removed, and clean content remains
+6. When all diffs are resolved, chat continuation fires automatically
 
 ## Architecture
 
@@ -33,18 +34,18 @@ src/
     edit.tsx                 # Block editor component
     save.tsx                 # Returns null (server-managed content)
     DiffRenderer.ts          # Applies <ins>/<del> tags to block content
-    DiffActions.ts           # Accept/reject with DM REST API communication
+    ActionResolver.ts        # Accept/reject with DM REST API communication
     ContentUpdater.ts        # Surgical cleanup of diff tags on resolution
     FindDiffBlocks.ts        # Query utility for diff blocks in the editor
     HandleAcceptAll.ts       # Bulk accept/reject operations
     style.css                # Diff block styles
   editor/
-    DiffTracker.ts           # Singleton state manager, wires to /chat/continue
+    ActionTracker.ts         # Singleton state manager, wires to /chat/continue
     InlineDiffManager.tsx    # Applies backend diff wrappers to editor blocks
 
 inc/
   Abilities/
-    DiffAbilities.php        # datamachine/resolve-diff ability + REST endpoint
+    ActionResolverAbilities.php  # Editor REST bridge → core resolve-pending-action
   Blocks/
     Diff/
       block.json             # Block metadata
@@ -55,29 +56,29 @@ inc/
 ### REST endpoint
 
 ```
-POST /datamachine/v1/editor/diff/resolve
+POST /datamachine/v1/editor/actions/resolve
 ```
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | `decision` | `'accepted' \| 'rejected'` | User's decision |
-| `diff_id` | `string` | The diff block identifier |
+| `action_id` | `string` | The pending action identifier |
 | `tool_call_id` | `string` | Originating tool call |
 | `post_id` | `integer` | Post being edited |
 
-### Ability
+### Hook
 
-`datamachine/resolve-diff` — registered via the WordPress Abilities API. Fires the `datamachine_editor_diff_resolved` action hook.
+Fires `datamachine_editor_action_resolved` with `$decision, $action_id, $tool_call_id, $post_id` after delegating to the unified core resolver.
 
 ### Context memory
 
-Registers `contexts/editor.md` via the `datamachine_default_context_files` filter. This file is scaffolded once and then owned by the agent — editable in the Data Machine admin UI under Agent > Memory > Contexts.
+Registers editor mode guidance via the `datamachine_agent_mode_editor` filter.
 
 ## Requirements
 
 - WordPress 6.5+
 - PHP 8.2+
-- [Data Machine](https://github.com/Extra-Chill/data-machine) plugin (core)
+- [Data Machine](https://github.com/Extra-Chill/data-machine) plugin (core) — version that ships the unified `PendingActionStore` / `ResolvePendingActionAbility` lane.
 
 ## Development
 

@@ -21,7 +21,7 @@ import { ActionRow, InlineStatus } from '@extrachill/components';
 import { useEditorContext } from '../context/EditorContext';
 import { AutoEditorProvider } from '../context/AutoEditorProvider';
 import { DiffRenderer } from './DiffRenderer';
-import { DiffActions } from './DiffActions';
+import { ActionResolver } from './ActionResolver';
 import type { DiffBlockAttributes, GutenbergBlock } from '../types';
 
 const blockEditorSelect = ( select: unknown ): { getBlocks: ( clientId?: string ) => GutenbergBlock[] } =>
@@ -43,7 +43,7 @@ function EditInner( {
 	clientId,
 }: EditProps ): JSX.Element {
 	const {
-		diffId,
+		actionId,
 		diffType,
 		status,
 		caseSensitive,
@@ -106,7 +106,7 @@ function EditInner( {
 		className: `datamachine-diff-block datamachine-diff-${ diffType } datamachine-diff-${ status }`,
 	} );
 
-	const { handleAccept, handleReject } = DiffActions.createActionHandlers(
+	const { handleAccept, handleReject } = ActionResolver.createActionHandlers(
 		attributes,
 		clientId,
 		currentPostId,
@@ -155,10 +155,10 @@ function EditInner( {
 					title={ __( 'Diff Settings', 'data-machine-editor' ) }
 				>
 					<TextControl
-						label={ __( 'Diff ID', 'data-machine-editor' ) }
-						value={ diffId }
+						label={ __( 'Action ID', 'data-machine-editor' ) }
+						value={ actionId }
 						onChange={ ( value: string ) =>
-							setAttributes( { diffId: value } )
+							setAttributes( { actionId: value } )
 						}
 						readOnly
 					/>

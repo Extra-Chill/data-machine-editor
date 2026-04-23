@@ -1,21 +1,22 @@
 /**
- * DiffTracker — centralized diff state management and continuation triggering.
+ * ActionTracker — centralized pending-action state management and
+ * continuation triggering.
  *
  * Tracks diff blocks by Gutenberg clientId and calls the DM /chat/continue
- * endpoint when all diffs have been resolved.
+ * endpoint when all staged actions have been resolved.
  */
 
 import apiFetch from '@wordpress/api-fetch';
-import type { DiffDecision, DiffInfo, GutenbergBlock, TrackerStatus } from '../types';
+import type { ActionDecision, ActionInfo, GutenbergBlock, TrackerStatus } from '../types';
 
-export class DiffTracker {
-	private activeDiffBlocks = new Map< string, DiffInfo >();
+export class ActionTracker {
+	private activeDiffBlocks = new Map< string, ActionInfo >();
 	private currentToolCallId: string | null = null;
 	private currentSessionId: string | null = null;
 	private isTrackingBulkOperation = false;
 	private postId: number | null = null;
 
-	private static instance: DiffTracker | null = null;
+	private static instance: ActionTracker | null = null;
 
 	constructor() {
 		if ( typeof wp !== 'undefined' && wp.data ) {
@@ -31,7 +32,7 @@ export class DiffTracker {
 		postId: number | null = null,
 		sessionId: string | null = null
 	): void {
-		console.log( 'DiffTracker: Starting tracking for tool:', toolCallId );
+		console.log( 'ActionTracker: Starting tracking for tool:', toolCallId );
 
 		this.currentToolCallId = toolCallId;
 		this.currentSessionId = sessionId;
@@ -40,29 +41,29 @@ export class DiffTracker {
 	}
 
 	/** Add a diff block to tracking when created in the editor. */
-	addDiffBlock( clientId: string, diffInfo: Omit< DiffInfo, 'timestamp' > ): void {
-		console.log( 'DiffTracker: Adding diff block:', clientId );
+	addDiffBlock( clientId: string, info: Omit< ActionInfo, 'timestamp' > ): void {
+		console.log( 'ActionTracker: Adding diff block:', clientId );
 
 		this.activeDiffBlocks.set( clientId, {
-			...diffInfo,
+			...info,
 			timestamp: Date.now(),
 		} );
 
 		console.log(
-			'DiffTracker: Now tracking',
+			'ActionTracker: Now tracking',
 			this.activeDiffBlocks.size,
 			'active diff blocks'
 		);
 	}
 
 	/** Mark a diff block as resolved (accepted or rejected). */
-	markDiffBlockResolved( clientId: string, action: DiffDecision ): void {
+	markDiffBlockResolved( clientId: string, action: ActionDecision ): void {
 		if ( ! this.activeDiffBlocks.has( clientId ) ) {
 			return;
 		}
 
 		console.log(
-			'DiffTracker: Marking diff block as resolved:',
+			'ActionTracker: Marking diff block as resolved:',
 			clientId,
 			'action:',
 			action
@@ -70,11 +71,11 @@ export class DiffTracker {
 		this.activeDiffBlocks.delete( clientId );
 
 		const remaining = this.activeDiffBlocks.size;
-		console.log( 'DiffTracker: Remaining active diff blocks:', remaining );
+		console.log( 'ActionTracker: Remaining active diff blocks:', remaining );
 
 		if ( remaining === 0 && this.currentToolCallId ) {
 			console.log(
-				'DiffTracker: All diff blocks resolved, triggering continuation'
+				'ActionTracker: All diff blocks resolved, triggering continuation'
 			);
 			void this.triggerContinuation( action );
 		}
@@ -82,13 +83,13 @@ export class DiffTracker {
 
 	/** Start bulk operation tracking (suppresses individual continuations). */
 	startBulkOperation(): void {
-		console.log( 'DiffTracker: Starting bulk operation' );
+		console.log( 'ActionTracker: Starting bulk operation' );
 		this.isTrackingBulkOperation = true;
 	}
 
 	/** End bulk operation — triggers continuation if all resolved. */
-	endBulkOperation( action: DiffDecision ): void {
-		console.log( 'DiffTracker: Ending bulk operation' );
+	endBulkOperation( action: ActionDecision ): void {
+		console.log( 'ActionTracker: Ending bulk operation' );
 		this.isTrackingBulkOperation = false;
 
 		if ( this.activeDiffBlocks.size === 0 && this.currentToolCallId ) {
@@ -162,13 +163,13 @@ export class DiffTracker {
 	 * Trigger chat continuation via the DM REST API.
 	 * Falls back to a DOM event when no session is available.
 	 */
-	private async triggerContinuation( action: DiffDecision ): Promise< void > {
+	private async triggerContinuation( action: ActionDecision ): Promise< void > {
 		if ( ! this.currentToolCallId ) {
 			return;
 		}
 
 		console.log(
-			'DiffTracker: Triggering continuation for tool:',
+			'ActionTracker: Triggering continuation for tool:',
 			this.currentToolCallId
 		);
 
@@ -190,7 +191,7 @@ export class DiffTracker {
 				);
 			} catch ( error ) {
 				console.error(
-					'DiffTracker: Chat continuation failed:',
+					'ActionTracker: Chat continuation failed:',
 					error
 				);
 			}
@@ -198,7 +199,7 @@ export class DiffTracker {
 			document.dispatchEvent(
 				new CustomEvent( 'datamachine-continue-chat', {
 					detail: {
-						trigger: 'diff_resolved',
+						trigger: 'action_resolved',
 						toolResult: {
 							action,
 							toolCallId: this.currentToolCallId,
@@ -216,7 +217,7 @@ export class DiffTracker {
 
 	/** Reset all tracking state. */
 	reset(): void {
-		console.log( 'DiffTracker: Resetting tracking state' );
+		console.log( 'ActionTracker: Resetting tracking state' );
 		this.activeDiffBlocks.clear();
 		this.currentToolCallId = null;
 		this.currentSessionId = null;
@@ -225,13 +226,13 @@ export class DiffTracker {
 	}
 
 	/** Get or create the singleton instance. */
-	static getInstance(): DiffTracker {
-		if ( ! DiffTracker.instance ) {
-			DiffTracker.instance = new DiffTracker();
+	static getInstance(): ActionTracker {
+		if ( ! ActionTracker.instance ) {
+			ActionTracker.instance = new ActionTracker();
 		}
-		return DiffTracker.instance;
+		return ActionTracker.instance;
 	}
 }
 
 /** Singleton instance. */
-export const diffTracker = DiffTracker.getInstance();
+export const actionTracker = ActionTracker.getInstance();
