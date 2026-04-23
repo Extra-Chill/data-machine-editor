@@ -41,7 +41,7 @@ function extractDiffContextFromMessages( messages: ChatMessage[] ): DiffContextI
 		if ( diff ) {
 			diffs.push( {
 				tool_call_id: diff.editor?.toolCallId as string ?? message.id,
-				diff_id: diff.diffId,
+				action_id: diff.actionId,
 				diff,
 			} );
 		}
@@ -75,8 +75,8 @@ export function EditorChatSidebar(): JSX.Element {
 		}
 
 		setDiffContext( ( prev ) => {
-			const seen = new Set( prev.diffs.map( ( diff ) => diff.diff.diffId ) );
-			const additions = diffs.filter( ( diff ) => ! seen.has( diff.diff.diffId ) );
+			const seen = new Set( prev.diffs.map( ( diff ) => diff.diff.actionId ) );
+			const additions = diffs.filter( ( diff ) => ! seen.has( diff.diff.actionId ) );
 			if ( additions.length === 0 ) {
 				return prev;
 			}

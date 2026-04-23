@@ -50,7 +50,7 @@ add_action( 'plugins_loaded', function () {
 	}
 
 	// Register abilities.
-	new DataMachineEditor\Abilities\DiffAbilities();
+	new DataMachineEditor\Abilities\ActionResolverAbilities();
 
 	// Register editor execution mode.
 	add_action( 'datamachine_agent_modes', function () {

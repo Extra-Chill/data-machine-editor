@@ -7,7 +7,7 @@
   "description": "A block containing AI-suggested changes that can be accepted or rejected.",
   "keywords": ["diff", "ai", "datamachine", "change", "revision"],
   "attributes": {
-    "diffId": { "type": "string" },
+    "actionId": { "type": "string" },
     "diffType": { "type": "string", "default": "edit" },
     "originalContent": { "type": "string" },
     "replacementContent": { "type": "string" },
@@ -26,7 +26,7 @@
   },
   "usesContext": ["postId", "postType"],
   "providesContext": {
-    "datamachine/diffId": "diffId",
+    "datamachine/actionId": "actionId",
     "datamachine/diffType": "diffType"
   },
   "editorScript": "datamachine-diff-block",

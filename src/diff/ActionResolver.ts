@@ -1,91 +1,95 @@
 /**
- * DiffActions — accept/reject logic with DM REST API communication.
+ * ActionResolver — accept/reject logic with DM REST API communication.
+ *
+ * Delegates each decision to the editor bridge endpoint
+ * `/datamachine/v1/editor/actions/resolve`, which in turn routes to core's
+ * unified ResolvePendingActionAbility.
  */
 
 import apiFetch from '@wordpress/api-fetch';
 import { ContentUpdater } from './ContentUpdater';
 import { FindDiffBlocks } from './FindDiffBlocks';
-import { diffTracker } from '../editor/DiffTracker';
+import { actionTracker } from '../editor/ActionTracker';
 import type {
 	DiffBlockAttributes,
-	DiffDecision,
+	ActionDecision,
 	ResolvePayload,
 	ResolveResponse,
 } from '../types';
 
-export class DiffActions {
-	/** Handle accepting a diff. */
+export class ActionResolver {
+	/** Handle accepting a pending action. */
 	static async handleAccept(
 		attributes: DiffBlockAttributes,
 		clientId: string,
 		currentPostId: number,
 		suppressContinuation = false
 	): Promise< { success: boolean } > {
-		const { toolCallId, diffId } = attributes;
+		const { toolCallId, actionId } = attributes;
 
 		try {
 			ContentUpdater.removeDiffWrapper( clientId, true );
 
-			const responseData = await DiffActions.sendUserDecision(
+			const responseData = await ActionResolver.sendUserDecision(
 				'accepted',
 				{
 					tool_call_id: toolCallId,
-					diff_id: diffId,
+					action_id: actionId,
 					post_id: currentPostId,
 				}
 			);
 
 			if ( responseData.continue_chat && ! suppressContinuation ) {
-				const remaining = FindDiffBlocks.findDiffBlocksByDiffId(
-					diffId
+				const remaining = FindDiffBlocks.findDiffBlocksByActionId(
+					actionId
 				).filter( ( b ) => b.attributes.status === 'pending' );
 
 				if ( remaining.length === 0 ) {
-					diffTracker.markDiffBlockResolved( clientId, 'accepted' );
+					actionTracker.markDiffBlockResolved( clientId, 'accepted' );
 				}
 			}
 
 			return { success: true };
 		} catch ( error ) {
-			console.error( 'Error accepting diff:', error );
+			console.error( 'Error accepting pending action:', error );
 			throw error;
 		}
 	}
 
-	/** Handle rejecting a diff. */
+	/** Handle rejecting a pending action. */
 	static async handleReject(
 		attributes: DiffBlockAttributes,
 		clientId: string,
 		currentPostId: number,
 		suppressContinuation = false
 	): Promise< { success: boolean } > {
-		const { toolCallId, diffId } = attributes;
+		const { toolCallId, actionId } = attributes;
 
 		try {
 			ContentUpdater.removeDiffWrapper( clientId, false );
 
-			const responseData = await DiffActions.sendUserDecision(
+			const responseData = await ActionResolver.sendUserDecision(
 				'rejected',
 				{
 					tool_call_id: toolCallId,
-					diff_id: diffId,
+					action_id: actionId,
 					post_id: currentPostId,
 				}
 			);
 
 			if ( responseData.continue_chat && ! suppressContinuation ) {
-				const remaining = FindDiffBlocks.findDiffBlocksByDiffId(
-					diffId
+				const remaining = FindDiffBlocks.findDiffBlocksByActionId(
+					actionId
 				).filter( ( b ) => b.attributes.status === 'pending' );
 
 				if ( remaining.length === 0 ) {
-					diffTracker.markDiffBlockResolved( clientId, 'rejected' );
+					actionTracker.markDiffBlockResolved( clientId, 'rejected' );
 				}
 			}
 
 			return { success: true };
 		} catch ( error ) {
-			console.error( 'Error rejecting diff:', error );
+			console.error( 'Error rejecting pending action:', error );
 			throw error;
 		}
 	}
@@ -95,30 +99,30 @@ export class DiffActions {
 	 * Uses wp.apiFetch which handles nonce/auth automatically.
 	 */
 	static async sendUserDecision(
-		decision: DiffDecision,
+		decision: ActionDecision,
 		data: ResolvePayload
 	): Promise< ResolveResponse > {
 		return apiFetch< ResolveResponse >( {
-			path: '/datamachine/v1/editor/diff/resolve',
+			path: '/datamachine/v1/editor/actions/resolve',
 			method: 'POST',
 			data: {
 				decision,
 				tool_call_id: data.tool_call_id,
-				diff_id: data.diff_id,
+				action_id: data.action_id,
 				post_id: data.post_id,
 			},
 		} );
 	}
 
 	/**
-	 * Trigger chat continuation after all diffs in a tool call are resolved.
+	 * Trigger chat continuation after all pending actions in a tool call are resolved.
 	 */
 	static async triggerChatContinuation(
 		sessionId: string
 	): Promise< unknown > {
 		if ( ! sessionId ) {
 			console.warn(
-				'DiffActions: No session ID for chat continuation'
+				'ActionResolver: No session ID for chat continuation'
 			);
 			return undefined;
 		}
@@ -131,12 +135,12 @@ export class DiffActions {
 			} );
 
 			console.log(
-				'DiffActions: Chat continuation response:',
+				'ActionResolver: Chat continuation response:',
 				response
 			);
 			return response;
 		} catch ( error ) {
-			console.error( 'DiffActions: Chat continuation failed:', error );
+			console.error( 'ActionResolver: Chat continuation failed:', error );
 			throw error;
 		}
 	}
@@ -153,7 +157,7 @@ export class DiffActions {
 			setIsProcessing( true );
 			try {
 				setAttributes( { status: 'accepted' } );
-				await DiffActions.handleAccept(
+				await ActionResolver.handleAccept(
 					attributes,
 					clientId,
 					currentPostId
@@ -169,7 +173,7 @@ export class DiffActions {
 			setIsProcessing( true );
 			try {
 				setAttributes( { status: 'rejected' } );
-				await DiffActions.handleReject(
+				await ActionResolver.handleReject(
 					attributes,
 					clientId,
 					currentPostId

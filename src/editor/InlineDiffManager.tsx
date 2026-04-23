@@ -10,7 +10,7 @@ import { useEffect, useState, useRef } from '@wordpress/element';
 import { useSelect, useDispatch } from '@wordpress/data';
 import { Button } from '@wordpress/components';
 import { useEditorContext } from '../context/EditorContext';
-import { diffTracker } from './DiffTracker';
+import { actionTracker } from './ActionTracker';
 import type { DiffContext, DiffContextItem, GutenbergBlock } from '../types';
 
 const wpBlocks = wp.blocks as {
@@ -35,7 +35,7 @@ function buildDiffWrapperBlock( diff: DiffContextItem, blocks: GutenbergBlock[] 
 	const originalBlockContent = originalBlocks.length > 0 ? wpBlocks.serialize( originalBlocks ) : '';
 
 	return wpBlocks.createBlock( 'datamachine/diff', {
-		diffId: diff.diff.diffId,
+		actionId: diff.diff.actionId,
 		diffType: diff.diff.diffType,
 		originalContent: diff.diff.originalContent,
 		replacementContent: diff.diff.replacementContent,
@@ -87,10 +87,10 @@ export const InlineDiffManager = ( {
 		}
 
 		const currentDiff = diffs[ 0 ];
-		const diffId =
-			currentDiff.diff_id ?? currentDiff.tool_call_id;
+		const actionId =
+			currentDiff.action_id ?? currentDiff.tool_call_id;
 
-		if ( processedDiffsRef.current.has( diffId ) ) {
+		if ( processedDiffsRef.current.has( actionId ) ) {
 			return;
 		}
 
@@ -98,7 +98,7 @@ export const InlineDiffManager = ( {
 			setOriginalBlocks( [ ...blocks ] );
 			lockPostSaving( 'datamachine-diff-preview' );
 			setIsPreviewing( true );
-			processedDiffsRef.current.add( diffId );
+			processedDiffsRef.current.add( actionId );
 
 			if (
 				currentDiff.target_blocks &&
@@ -114,7 +114,7 @@ export const InlineDiffManager = ( {
 						resetBlocks( parsed );
 					} else {
 						setIsPreviewing( false );
-						processedDiffsRef.current.delete( diffId );
+						processedDiffsRef.current.delete( actionId );
 					}
 					return;
 				}
@@ -151,10 +151,10 @@ export const InlineDiffManager = ( {
 						parsedDiffBlock.clientId &&
 						parsedDiffBlock.attributes
 					) {
-						diffTracker.addDiffBlock(
+						actionTracker.addDiffBlock(
 							parsedDiffBlock.clientId,
 							{
-								diffId: parsedDiffBlock.attributes.diffId as string,
+								actionId: parsedDiffBlock.attributes.actionId as string,
 								toolCallId: parsedDiffBlock.attributes.toolCallId as string,
 								diffType: parsedDiffBlock.attributes.diffType as 'edit' | 'write' | 'insert' | 'delete',
 								originalBlockIndex: block_index,
@@ -170,7 +170,7 @@ export const InlineDiffManager = ( {
 
 				if ( ! diffBlock ) {
 					setIsPreviewing( false );
-					processedDiffsRef.current.delete( diffId );
+					processedDiffsRef.current.delete( actionId );
 					return;
 				}
 
@@ -187,22 +187,22 @@ export const InlineDiffManager = ( {
 					const targetBlock = nonEmptyBlocks[ blockIndex ];
 					if ( ! targetBlock ) {
 						setIsPreviewing( false );
-						processedDiffsRef.current.delete( diffId );
+						processedDiffsRef.current.delete( actionId );
 						return;
 					}
 
 					replaceBlock( targetBlock.clientId, diffBlock );
 				}
 
-				diffTracker.addDiffBlock( diffBlock.clientId, {
-					diffId: diffBlock.attributes.diffId as string,
+				actionTracker.addDiffBlock( diffBlock.clientId, {
+					actionId: diffBlock.attributes.actionId as string,
 					toolCallId: diffBlock.attributes.toolCallId as string,
 					diffType: diffBlock.attributes.diffType as 'edit' | 'write' | 'insert' | 'delete',
 					originalBlockIndex: blockIndex,
 				} );
 			} else {
 				setIsPreviewing( false );
-				processedDiffsRef.current.delete( diffId );
+				processedDiffsRef.current.delete( actionId );
 			}
 		} catch ( error ) {
 			console.error(
@@ -210,7 +210,7 @@ export const InlineDiffManager = ( {
 				error
 			);
 			setIsPreviewing( false );
-			processedDiffsRef.current.delete( diffId );
+			processedDiffsRef.current.delete( actionId );
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [ diffs.length, isPreviewing ] );
