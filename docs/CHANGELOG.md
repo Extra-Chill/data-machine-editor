@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.3.3] - 2026-04-24
+
+### Changed
+- migrate Gutenberg editor to unified PendingActionStore lane
+
 ## [0.3.2] - 2026-04-21
 
 ### Changed
