@@ -15,11 +15,11 @@ import {
 	TypingIndicator,
 	ErrorBoundary,
 	SessionSwitcher,
+	parseCanonicalDiffFromJson,
 	type ChatMessage,
 } from '@extrachill/chat';
 import { InlineDiffManager } from '../editor/InlineDiffManager';
 import type { DiffContext, DiffContextItem } from '../types';
-import { parseCanonicalDiffFromJson } from '../diff/canonicalDiff';
 
 /**
  * Extract diff-producing tool call results into a DiffContext
