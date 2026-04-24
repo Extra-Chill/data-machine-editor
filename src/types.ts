@@ -2,7 +2,7 @@
  * Shared types for the Data Machine Editor plugin.
  */
 
-import type { CanonicalDiffData, CanonicalDiffType } from './diff/canonicalDiff';
+import type { CanonicalDiffData, CanonicalDiffType } from '@extrachill/chat';
 
 /** Diff mode: how the change is applied to the content. */
 export type DiffType = CanonicalDiffType | 'write' | 'delete';
