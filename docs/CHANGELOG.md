@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.3.4] - 2026-05-03
+
+### Changed
+- Use @extrachill/chat canonical diff parser, delete local fork
+
 ## [0.3.3] - 2026-04-24
 
 ### Changed
