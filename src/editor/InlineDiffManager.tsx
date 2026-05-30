@@ -64,7 +64,7 @@ export const InlineDiffManager = ( {
 	diffContext,
 	onAccept,
 	onReject,
-}: InlineDiffManagerProps ): JSX.Element | null => {
+}: InlineDiffManagerProps ) => {
 	const { diffs } = diffContext;
 
 	const [ originalBlocks, setOriginalBlocks ] =
