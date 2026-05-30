@@ -41,7 +41,7 @@ function EditInner( {
 	attributes,
 	setAttributes,
 	clientId,
-}: EditProps ): JSX.Element {
+}: EditProps ) {
 	const {
 		actionId,
 		diffType,
@@ -242,7 +242,7 @@ function EditInner( {
  * In wp-admin: reads postId from core/editor.
  * In headless/frontend IBE: uses parent EditorProvider or defaults.
  */
-export default function Edit( props: EditProps ): JSX.Element {
+export default function Edit( props: EditProps ) {
 	return (
 		<AutoEditorProvider>
 			<EditInner { ...props } />

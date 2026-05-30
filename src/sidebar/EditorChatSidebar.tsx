@@ -50,7 +50,7 @@ function extractDiffContextFromMessages( messages: ChatMessage[] ): DiffContextI
 	return diffs;
 }
 
-export function EditorChatSidebar(): JSX.Element {
+export function EditorChatSidebar() {
 	const { postId: currentPostId, postTitle } = useEditorContext();
 
 	const [ diffContext, setDiffContext ] = useState< DiffContext >( {
