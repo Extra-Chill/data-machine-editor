@@ -63,10 +63,10 @@ add_action( 'plugins_loaded', function () {
 	// Register editor mode guidance via directive filter.
 	add_filter( 'datamachine_agent_mode_editor', 'datamachine_editor_mode_guidance', 10, 2 );
 
-	// Register the diff block.
+	// Register the diff block (and its editor asset handles) on init.
 	add_action( 'init', 'datamachine_editor_register_blocks' );
 
-	// Enqueue editor assets.
+	// Enqueue editor assets in the block editor context.
 	add_action( 'enqueue_block_editor_assets', 'datamachine_editor_enqueue_assets' );
 }, 20 );
 
@@ -115,34 +115,60 @@ MD;
 
 /**
  * Register Gutenberg blocks.
+ *
+ * The diff block's editorScript/editorStyle handles (declared in block.json)
+ * are registered here, at init, so they exist for register_block_type() in
+ * every context the block metadata claims. Enqueueing happens separately on
+ * the block editor hook. The diff block has no frontend output (save returns
+ * null), so it declares no frontend `style` handle.
  */
 function datamachine_editor_register_blocks(): void {
+	datamachine_editor_register_block_assets();
 	register_block_type( DATAMACHINE_EDITOR_PATH . 'inc/Blocks/Diff' );
+}
+
+/**
+ * Register the diff block's editor asset handles.
+ *
+ * Registration (not just enqueue) guarantees the handle names referenced by
+ * block.json are known to WordPress when register_block_type() reads the
+ * metadata on init, rather than relying on a separate editor-only hook.
+ */
+function datamachine_editor_register_block_assets(): void {
+	$diff_asset_file = DATAMACHINE_EDITOR_PATH . 'build/diff-block.asset.php';
+	if ( ! file_exists( $diff_asset_file ) ) {
+		return;
+	}
+
+	$asset = require $diff_asset_file;
+
+	wp_register_script(
+		'datamachine-diff-block',
+		DATAMACHINE_EDITOR_URL . 'build/diff-block.js',
+		$asset['dependencies'],
+		$asset['version'],
+		true
+	);
+
+	wp_register_style(
+		'datamachine-diff-block',
+		DATAMACHINE_EDITOR_URL . 'build/style-diff-block.css',
+		array(),
+		$asset['version']
+	);
 }
 
 /**
  * Enqueue editor scripts and styles.
  */
 function datamachine_editor_enqueue_assets(): void {
-	// Diff block assets.
-	$diff_asset_file = DATAMACHINE_EDITOR_PATH . 'build/diff-block.asset.php';
-	if ( file_exists( $diff_asset_file ) ) {
-		$asset = require $diff_asset_file;
-
-		wp_enqueue_script(
-			'datamachine-diff-block',
-			DATAMACHINE_EDITOR_URL . 'build/diff-block.js',
-			$asset['dependencies'],
-			$asset['version'],
-			true
-		);
-
-		wp_enqueue_style(
-			'datamachine-diff-block',
-			DATAMACHINE_EDITOR_URL . 'build/style-diff-block.css',
-			array(),
-			$asset['version']
-		);
+	// Diff block assets (handles registered at init in
+	// datamachine_editor_register_block_assets()).
+	if ( wp_script_is( 'datamachine-diff-block', 'registered' ) ) {
+		wp_enqueue_script( 'datamachine-diff-block' );
+	}
+	if ( wp_style_is( 'datamachine-diff-block', 'registered' ) ) {
+		wp_enqueue_style( 'datamachine-diff-block' );
 	}
 
 	// Editor chat sidebar assets.

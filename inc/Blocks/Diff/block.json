@@ -30,6 +30,5 @@
     "datamachine/diffType": "diffType"
   },
   "editorScript": "datamachine-diff-block",
-  "editorStyle": "datamachine-diff-block",
-  "style": "datamachine-diff-block"
+  "editorStyle": "datamachine-diff-block"
 } 
