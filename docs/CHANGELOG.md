@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.3.6] - 2026-05-30
+
+### Fixed
+- add .npmrc legacy-peer-deps for React 19 build compatibility
+
 ## [0.3.5] - 2026-05-30
 
 ### Changed
