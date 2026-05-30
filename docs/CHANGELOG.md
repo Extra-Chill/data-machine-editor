@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.3.5] - 2026-05-30
+
+### Changed
+- align @wordpress/scripts toolchain with React 19 runtime
+
 ## [0.3.4] - 2026-05-03
 
 ### Changed
