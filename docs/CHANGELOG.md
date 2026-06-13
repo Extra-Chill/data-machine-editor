@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.3.7] - 2026-06-13
+
+### Fixed
+- register diff block assets for declared contexts (closes #12)
+- use datamachine tokens for diff block colors, drop !important (closes #11)
+
 ## [0.3.6] - 2026-05-30
 
 ### Fixed
