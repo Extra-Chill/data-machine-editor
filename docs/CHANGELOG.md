@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.3.9] - 2026-09-21
+
+### Changed
+- adopt the shared Homeboy release train
+
+### Fixed
+- exclude webpack.config.js from release package coverage
+
 ## [0.3.8] - 2026-06-16
 
 ### Changed
