@@ -6,6 +6,13 @@
   },
   "id": "data-machine-editor",
   "remote_path": "wp-content/plugins/data-machine-editor",
+  "scopes": {
+    "release": {
+      "exclude": [
+        "webpack.config.js"
+      ]
+    }
+  },
   "version_targets": [
     {
       "file": "data-machine-editor.php",
